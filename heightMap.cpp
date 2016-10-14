@@ -109,21 +109,10 @@ void heightMap::initialisationAuto(){
 	maxIndexLine = maxIndexColumn;
 
     //Corner's random height between maxDepth and maxHeight;
-	corner1 = rand() % maxIndexLine;
-	signe = rand() % 2;
-	if (signe == 0){ corner1 = -corner1; }
-
-	corner2 = rand() % maxIndexLine;
-	signe = rand() % 2;
-	if (signe == 0){ corner2 = -corner2; }
-
-	corner3 = rand() % maxIndexLine;
-	signe = rand() % 2;
-	if (signe == 0){ corner3 = -corner3; }
-
-	corner4 = rand() % maxIndexLine;
-	signe = rand() % 2;
-	if (signe == 0){ corner4 = -corner4; }
+	corner1 = (rand() % (2 * maxIndexLine + 1)) - maxIndexLine;
+	corner2 = (rand() % (2 * maxIndexLine + 1)) - maxIndexLine;
+	corner3 = (rand() % (2 * maxIndexLine + 1)) - maxIndexLine;
+	corner4 = (rand() % (2 * maxIndexLine + 1)) - maxIndexLine;
 
     //Setting the height of the map's corners
     setHeightMap(0,0,corner1);
@@ -235,25 +224,11 @@ void heightMap::generateMatrix(){
 }
 
 void heightMap::rescale(){
-    float maxi=maxDepth;
-    float mini=maxHeight;
+	int* maxMin = giveMaxes();
+    float maxi=maxMin[0];
+	float mini = maxMin[1];
     float rescaleFactor=0.0;
     bool rescale_needed=false;
-
-    for(int a=0; a<=pow(2,length); a++)
-    {
-        for(int b=0; b<=pow(2,width); b++)
-        {
-            if(heightMatrix[a][b]>maxi)
-            {
-                maxi=heightMatrix[a][b];
-            }
-            if(heightMatrix[a][b]<mini)
-            {
-                mini=heightMatrix[a][b];
-            }
-        }
-    }
 
     if(maxi>maxHeight || mini<maxDepth)
     {
