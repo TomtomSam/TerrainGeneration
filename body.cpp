@@ -16,6 +16,11 @@ heightMap maMap(5);
 int last_time = glutGet(GLUT_ELAPSED_TIME);
 int current_time, ellapsed_time;
 
+//Vertex Data
+vector<float> pos;
+vector<float> colors;
+float color[3];
+
 // angles de rotation (coordonnees spheriques) pour calculer le vecteur vision de la camera
 float angleTheta = 0.825f;
 float anglePhi = -1.86f;
@@ -82,24 +87,23 @@ GLvoid deplacementSouris(int x, int y);
 GLvoid redimensionner(int w, int h);
 
 
-// Fonction de gestion du deplacement de la camera
-void cameraMovement(float dM, float dS) {
-	
-	camPos = camPos + dS*rightView + dM*forwardView;
-	// Mettre a jour la cible
-	targetPos = camPos + forwardView;
+//demarrer le chrono
+void Tic()
+{
+	current_time = glutGet(GLUT_ELAPSED_TIME);
+	last_time = current_time;
 }
 
-
-vector<float> pos;
-vector<float> colors;
-float color[3];
+//arreter le chrono
+void Toc()
+{
+	current_time = glutGet(GLUT_ELAPSED_TIME);
+	ellapsed_time = current_time - last_time;
+}
 
 void FillDataBuffers()
 {
-
-	current_time = glutGet(GLUT_ELAPSED_TIME);
-	last_time = current_time;
+	Tic();
 
 	pos.clear();
 	colors.clear();
@@ -154,8 +158,7 @@ void FillDataBuffers()
 		}
 	}
 
-	current_time = glutGet(GLUT_ELAPSED_TIME);
-	ellapsed_time = current_time - last_time;
+	Toc();
 	cout << "Remplissage des donnees effectue en: " << (float)ellapsed_time / 1000 << "s." << endl;
 
 }
@@ -209,69 +212,18 @@ void BuildAndDrawBuffer()
 	/** fin **/
 }
 
+// Fonction de gestion du deplacement de la camera
+void cameraMovement(float dM, float dS) {
 
-/*
-void affichageTriangle(){
-	//vector<float>  color;
-	for (int i = 0; i < pow(2, maMap.getLength()); i++)
-	{
-		for (int j = 0; j < pow(2, maMap.getLength()); j++)
-		{
-			glBegin(GL_TRIANGLES);
-
-			float color[3];
-
-			maMap.vertexColor(maMap.getHeightMap(i, j), posNeige, posPlage, posOcean, color);
-			glColor3f(color[0], color[1], color[2]);
-			glVertex3f(i, maMap.getHeightMap(i, j), j);
-
-			maMap.vertexColor(maMap.getHeightMap(i + 1, j), posNeige, posPlage, posOcean, color);
-			glColor3f(color[0], color[1], color[2]);
-			glVertex3f((i + 1), maMap.getHeightMap(i + 1, j), j);
-
-			maMap.vertexColor(maMap.getHeightMap(i, j), posNeige, posPlage, posOcean, color);
-			glColor3f(color[0], color[1], color[2]);
-			glVertex3f(i, maMap.getHeightMap(i, j + 1), (j + 1));
-
-			glEnd();
-
-			glBegin(GL_TRIANGLES);
-
-			maMap.vertexColor(maMap.getHeightMap(i + 1, j + 1), posNeige, posPlage, posOcean, color);
-			glColor3f(color[0], color[1], color[2]);
-			glVertex3f((i + 1), maMap.getHeightMap(i + 1, j + 1), (j + 1));
-			
-			maMap.vertexColor(maMap.getHeightMap(i + 1, j), posNeige, posPlage, posOcean, color);
-			glColor3f(color[0], color[1], color[2]);
-			glVertex3f((i + 1), maMap.getHeightMap(i + 1, j), j);
-
-			maMap.vertexColor(maMap.getHeightMap(i, j + 1), posNeige, posPlage, posOcean, color);
-			glColor3f(color[0], color[1], color[2]);
-			glVertex3f(i, maMap.getHeightMap(i, j + 1), (j + 1));
-
-			glEnd();
-
-		}
-	}
-
-	//Dessin de l'océan (plan bleu)
-	glBegin(GL_QUADS);
-			
-			glColor3f(0,0,0.75);
-			glVertex3f(0		, posOcean		, 0			);
-			glVertex3f(taille	, posOcean		, 0			);
-			glVertex3f(taille	, posOcean		, taille	);
-			glVertex3f(0		, posOcean		, taille	);
-
-	glEnd();
+	camPos = camPos + dS*rightView + dM*forwardView;
+	// Mettre a jour la cible
+	targetPos = camPos + forwardView;
 }
-*/
 
 // Definition de la fonction d'affichage
 GLvoid affichage(){
 
-	current_time = glutGet(GLUT_ELAPSED_TIME);
-	last_time = current_time;
+	Tic();
 	
    // Effacement du frame buffer
 	
@@ -311,8 +263,7 @@ GLvoid affichage(){
 	   Sleep(17 - ellapsed_time);
    }
 
-   current_time = glutGet(GLUT_ELAPSED_TIME);
-   ellapsed_time = current_time - last_time;
+   Toc();
    cout << "FPS: " << (int)(1000 / (float)ellapsed_time) << endl;
    
 }
@@ -368,6 +319,14 @@ GLvoid clavier(unsigned char touche, int x, int y) {
 		case 'b':
 			posPlage--;
 			FillDataBuffers();
+			break;
+		case 'w':
+			//Ecriture du fichier OBJ pour exportation dans modeleur 3D
+			cout << "Ecriture du fichier OBJ, veuillez patienter..." << endl;
+			Tic();
+			maMap.ecrireFichierObj();
+			Toc();
+			cout << "Ecriture du fichier OBJ effectuee en " << (float)ellapsed_time / 1000 << "s." << endl << endl;
 			break;
 		case 27:
 			exit(0);
@@ -447,8 +406,6 @@ void releaseSpecialKey(int key, int x, int y) {
 		break;
 	}
 }
-
-
 
 // Fonction de rappel de la souris
    GLvoid souris(int bouton, int etat, int x, int y)
@@ -542,18 +499,13 @@ int main (int argc, char *argv[])
 {
 	srand(time(NULL));
 
+	Tic();
 	//Initialisation Map
 	maMap.initialisationAuto();
-
 	//On génère la heightMap
 	maMap.generateMatrix();
-	
-	//Ecriture du fichier OBJ pour exportation dans modeleur 3D
-	maMap.ecrireFichierObj();
-	
-	current_time = glutGet(GLUT_ELAPSED_TIME);
-	ellapsed_time = current_time - last_time;
-	cout << "generation effectuee en " << (float)ellapsed_time/1000 << "s." << endl;
+	Toc();
+	cout << "Generation effectuee en " << (float)ellapsed_time / 1000 << "s." << endl;
 
 	//Min et Max des altitudes de la carte
 	float maxMin[2];
@@ -567,12 +519,10 @@ int main (int argc, char *argv[])
 	posNeige = seuils[0];
 	posPlage = seuils[1];
 	posOcean = seuils[2];
-	cout << "neige: " << posNeige<< " plage: " << posPlage << " ocean: " << posOcean << endl;
+	cout << "neige: " << posNeige<< " plage: " << posPlage << " ocean: " << posOcean << endl<<endl;
 
 	//On rempli les données à envoyer au GPU
 	FillDataBuffers();
-
-	
 
    // Initialisation de GLUT
    glutInit(&argc, argv);
