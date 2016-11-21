@@ -9,9 +9,15 @@
 
 #include "heightMap.h"
 #include "vector3D.h"
+#include "FreeFlyCamera.h"
 
 heightMap maMap(5);
 
+//2^n
+int taille = pow(2, maMap.getLength());
+
+//Initialisation camera: (MoveSensitivity,CampPos,TargetPos)
+FreeFlyCamera cam((float)taille / 100, 0.5*taille, taille, -0.5*taille, 0, -0.5*taille, 0.75*taille);
 
 int last_time = glutGet(GLUT_ELAPSED_TIME);
 int current_time, ellapsed_time;
@@ -20,42 +26,6 @@ int current_time, ellapsed_time;
 vector<float> pos;
 vector<float> colors;
 float color[3];
-
-// angles de rotation (coordonnees spheriques) pour calculer le vecteur vision de la camera
-float angleTheta = 0.825f;
-float anglePhi = -1.86f;
-
-// Difference "Fly" vs. "FPS" modes
-Vector3D forwardMove;
-Vector3D rightMove;
-
-// Camera viewing vectors
-Vector3D forwardView;
-Vector3D rightView;
-// On garde le vecteur "up" du monde : 0 1 0
-Vector3D upWorld;
-
-// Camera position
-Vector3D camPos;
-Vector3D targetPos;
-
-// Sensibilite de deplacement
-float moveSensitivity;
-float mouseRotSensitivity;
-
-// les increments des angles theta et phi
-// egales a 0 quand on n'appuie sur aucune touche
-float deltaTheta = 0.0f;
-float deltaPhi = 0.0f;
-
-// increments de deplacement
-// remis a 0 quand on appuis sur rien
-float deltaMove = 0;
-float deltaStrafe = 0.0f;
-
-// coordonnes de la souris au moment du clic gauche
-int xOrigin = -1;
-int yOrigin = -1;
 
 //liste d'affichage
 //GLuint list;
@@ -66,11 +36,6 @@ GLuint bufferMap;
 float posNeige;
 float posPlage;
 float posOcean;
-
-//Mouvement caméra
-int taille = pow(2, maMap.getLength());
-const int TAILLE = taille;
-const int NB_VERTS = pow(TAILLE + 1, 2);
 
 // Taille de la fenêtre
 int windowW = 1000;
@@ -212,31 +177,23 @@ void BuildAndDrawBuffer()
 	/** fin **/
 }
 
-// Fonction de gestion du deplacement de la camera
-void cameraMovement(float dM, float dS) {
-
-	camPos = camPos + dS*rightView + dM*forwardView;
-	// Mettre a jour la cible
-	targetPos = camPos + forwardView;
-}
 
 // Definition de la fonction d'affichage
 GLvoid affichage(){
 
 	Tic();
 	
-   // Effacement du frame buffer
-	
 	// On gere le deplacement de la camera
-	cameraMovement(deltaMove, deltaStrafe);
+	cam.cameraMovement();
+
+	// Effacement du frame buffer
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
 
    // on definit la position de la camera et ou elle regarde
-   gluLookAt(camPos.getVx(), camPos.getVy(), camPos.getVz(), targetPos.getVx(), targetPos.getVy(), targetPos.getVz(), upWorld.getVx(), upWorld.getVy(), upWorld.getVz());
-
+   gluLookAt(cam.getcamPos().getVx(), cam.getcamPos().getVy(), cam.getcamPos().getVz(), cam.gettargetPos().getVx(), cam.gettargetPos().getVy(), cam.gettargetPos().getVz(), cam.getupWorld().getVx(), cam.getupWorld().getVy(), cam.getupWorld().getVz());
 
    //On dessine la map
    BuildAndDrawBuffer();
@@ -249,6 +206,36 @@ GLvoid affichage(){
 	   glVertex3f(taille, posOcean, taille);
 	   glVertex3f(0, posOcean, taille);
    glEnd();
+
+   //Mettre ça dans un VBO
+   glBegin(GL_TRIANGLE_STRIP);
+		glColor3f(0, 0, 0);
+		//on commrnce en (0,0)
+		//à droite
+		for (int i = 0; i <= taille; i++)
+		{
+			glVertex3f(0, maMap.getHeightMap(0, i), i);
+			glVertex3f(0, posOcean, i);
+		}
+		//en bas
+		for (int i = 0; i <= taille; i++)
+		{
+			glVertex3f(i, maMap.getHeightMap(i, taille), taille);
+			glVertex3f(i, posOcean, taille);
+		}
+		//à gauche
+		for (int i = taille; i >= 0; i--)
+		{
+			glVertex3f(taille, maMap.getHeightMap(taille, i), i);
+			glVertex3f(taille, posOcean, i);
+		}
+		//en haut
+		for (int i = taille; i >= 0; i--)
+		{
+			glVertex3f(i, maMap.getHeightMap(i, 0), 0);
+			glVertex3f(i, posOcean, 0);
+		}
+	glEnd();
 
    //Affichage écran
    glFlush();
@@ -274,20 +261,20 @@ GLvoid clavier(unsigned char touche, int x, int y) {
 			// Q et D on strafe
 		case 'q':
 		case 'Q':
-			deltaStrafe += moveSensitivity;		
+			cam.incrementMouvement("deltaStrafe", '+');
 			break;
 		case 'd':
 		case 'D':
-			deltaStrafe -= moveSensitivity;	
+			cam.incrementMouvement("deltaStrafe", '-');
 			break;
 			// Z et S avance/recule
 		case 'z':
 		case 'Z':
-			deltaMove += moveSensitivity;
+			cam.incrementMouvement("deltaMove", '+');
 			break;
 		case 's':
 		case 'S':
-			deltaMove -= moveSensitivity;
+			cam.incrementMouvement("deltaMove", '-');
 			break;
 		case 'p': // carre plein
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -350,7 +337,7 @@ void clavierUp(unsigned char key, int x, int y) {
 	case 'd':
 	case 'Q':
 	case 'D':
-		deltaStrafe = 0;
+		cam.resetDeltaStrafe();
 		break;
 
 		// On arrete d'avance/reculer
@@ -358,35 +345,9 @@ void clavierUp(unsigned char key, int x, int y) {
 	case 's':
 	case 'Z':
 	case 'S':
-		deltaMove = 0;
+		cam.resetDeltaMove();
 		break;
 	}
-}
-
-
-// Fonction de gestion du clavier (touche speciale appuyee)
-void specialKeyDown(int key, int xx, int yy) {
-
-	switch (key) {
-		// Deplacement avance/recul
-	case GLUT_KEY_UP:
-		deltaMove++;
-		break;
-	case GLUT_KEY_DOWN:
-		deltaMove--;
-		break;
-
-		// Strafe a gauche/droite
-	case GLUT_KEY_RIGHT:
-		deltaStrafe++;
-		break;
-	case GLUT_KEY_LEFT:
-		deltaStrafe--;
-		break;
-	default:
-		break;
-	}
-
 }
 
 // Fonction de gestion du clavier (touche speciale relachee)
@@ -396,13 +357,13 @@ void releaseSpecialKey(int key, int x, int y) {
 		// On remet le delt deplacement a 0
 	case GLUT_KEY_UP:
 	case GLUT_KEY_DOWN:
-		deltaMove = 0;
+		cam.resetDeltaMove();
 		break;
 
 		// On remet le delta strafe a 0
 	case GLUT_KEY_RIGHT:
 	case GLUT_KEY_LEFT:
-		deltaStrafe = 0;
+		cam.resetDeltaStrafe();
 		break;
 	}
 }
@@ -414,17 +375,16 @@ void releaseSpecialKey(int key, int x, int y) {
 	   if (bouton == GLUT_LEFT_BUTTON) {
 		   // si on relache le bouton on met a jour les angles theta et phi
 		   // et on dit que l'on a pas clique
-		   if (etat == GLUT_UP) {
-			   angleTheta += deltaTheta;
-			   anglePhi += deltaPhi;
-			   xOrigin = -1;
-			   yOrigin = -1;
+		   if (etat == GLUT_UP) 
+		   {
+			   cam.setBouttonUp();
+			   int h = 2;
 		   }
-		   else  {// state = GLUT_DOWN
+		   else  
+		   {	// state = GLUT_DOWN
 			   // si l'on a clique sur le bouton gauche
 			   // on garde les positions de la souris au moment du clic gauche
-			   xOrigin = x;
-			   yOrigin = y;
+			   cam.setBouttonDown(x,y);
 		   }
 	   }
    }
@@ -434,33 +394,13 @@ void releaseSpecialKey(int key, int x, int y) {
    // Fonction de gestion du deplacement de la souris
    void deplacementSouris(int x, int y) {
 
-	   // On ne fait quelque chose que si l'utilisateur
-	   // a deja clique quelque part avec le bouton gauche
-	   if (xOrigin >= 0 || yOrigin >= 0) {
+	   bool affiche = false;
 
-		   // mise a jour des deltas des angles theta et phi
-		   deltaTheta = (x - xOrigin)*mouseRotSensitivity;
-		   deltaPhi = (y - yOrigin)*mouseRotSensitivity;
-
-		   // Calcul du nouveau vecteur vision :
-		   forwardView.setVx(sin(anglePhi + deltaPhi)*cos(angleTheta + deltaTheta));
-		   forwardView.setVy(-cos(anglePhi + deltaPhi));
-		   forwardView.setVz(sin(anglePhi + deltaPhi)*sin(angleTheta + deltaTheta));
-
-		   // normalisation du vecteur forward
-		   forwardView = forwardView.normalize();
-
-		   // Up ne change pas
-		   // et right est le cross product entre up et forward
-		   rightView = upWorld.crossProduct(forwardView);
-
-
-		   // Mettre a jour la cible = point "vise" par la camera
-		   targetPos = camPos + forwardView;
-
-		   // Demande a GLUT de reafficher la scene
-		   glutPostRedisplay();
-	   }
+	   //on actualise les vecteurs de la caméra
+	   affiche = cam.ActualiserCamera(x, y);
+	 
+	   //on n'affiche que si on est en train de cliquer
+	   if (affiche){ glutPostRedisplay();}
    }
 
 
@@ -537,41 +477,19 @@ int main (int argc, char *argv[])
    
    //Initialisation de GLU
    glewInit();
-   
 
    // Définition de la couleur d'effacement du framebuffer
    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
    
    glEnable(GL_DEPTH_TEST);
-
-   // on initialise la position de la camera
-   camPos = Vector3D(1.5*taille, taille/2, 1.5*taille);
-
-   // on initialise les vecteurs 'view'
-   forwardView = Vector3D(-1.5*taille, -taille/2, -1.5*taille);
-   upWorld = Vector3D(0, 1, 0);
-   rightView = upWorld.crossProduct(forwardView);
-
-   // Pour le FPS mode
-   forwardMove = forwardView;
-   rightMove = rightView;
-
-   // on initialise la cible a partir de la camera et du vecteur vision
-   targetPos = camPos + forwardView;
-
-   // Initialisation des "constantes"
-   moveSensitivity = (float)taille/100;
-   mouseRotSensitivity = 0.005f;
-
    
    // Définition des fonctions de callbacks
    glutDisplayFunc(affichage);
 
-   // pour que l'on puisse rester appuye sur les touches
-   //glutIgnoreKeyRepeat(1);
-   glutKeyboardFunc(clavier);
-   glutKeyboardUpFunc(clavierUp);
-   glutSpecialFunc(specialKeyDown);
+	// pour que l'on puisse rester appuye sur les touches
+	//glutIgnoreKeyRepeat(1);
+	glutKeyboardFunc(clavier);
+	glutKeyboardUpFunc(clavierUp);
 	glutSpecialUpFunc(releaseSpecialKey);
 
    // Nouveaux callbacks
