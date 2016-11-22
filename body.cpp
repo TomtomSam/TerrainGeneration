@@ -128,7 +128,7 @@ void FillDataBuffers()
 	}
 
 	chrono.Toc();
-	cout << "Remplissage des donnees effectue en: " << (float)ellapsed_time / 1000 << "s." << endl;
+	cout << "Remplissage des donnees effectue en: " << static_cast<float>(chrono.getEllapsed_time()) / 1000 << "s." << endl;
 
 }
 
@@ -250,16 +250,15 @@ GLvoid affichage(){
 	glutSwapBuffers();
 
 	// Compteur FPS
-	current_time = glutGet(GLUT_ELAPSED_TIME);
-	ellapsed_time = current_time - last_time;
+	chrono.Toc();
 
-	if (ellapsed_time < 17)
+	if (chrono.getEllapsed_time() < 17)
 	{ 
-		Sleep(17 - ellapsed_time);
+		Sleep(17 - chrono.getEllapsed_time());
 	}
 
 	chrono.Toc();
-	cout << "FPS: " << static_cast<int>(1000 / static_cast<float>(ellapsed_time)) << endl;
+	cout << "FPS: " << chrono.getEllapsed_time() << endl;
 
 }
 
@@ -500,7 +499,6 @@ int main (int argc, char *argv[])
 	glutDisplayFunc(affichage);
 
 	// pour que l'on puisse rester appuye sur les touches
-	//glutIgnoreKeyRepeat(1);
 	glutKeyboardFunc(clavier);
 	glutKeyboardUpFunc(clavierUp);
 	glutSpecialUpFunc(releaseSpecialKey);
