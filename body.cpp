@@ -1,3 +1,4 @@
+// Include des libraires
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
@@ -7,37 +8,42 @@
 #include <GL/freeglut.h>
 #include <vector>
 
+// Include des headers de classes
 #include "heightMap.h"
-#include "vector3D.h"
+#include "vector3D.h" //????????????????????????????????????
 #include "FreeFlyCamera.h"
 
+
+// Classe VBO, Classe chrono
+
+// Initialisation de la carte
 heightMap maMap(5);
 
-//2^n
+// Initialisation du nombre de points par ligne/colonne
 int taille = pow(2, maMap.getLength());
 
-//Initialisation camera: (MoveSensitivity,CampPos,TargetPos)
+// Initialisation camera: (MoveSensitivity,CampPos,TargetPos)
 FreeFlyCamera cam((float)taille / 100, 0.5*taille, taille, -0.5*taille, 0, -0.5*taille, 0.75*taille);
 
+// Creation des variables utilisees par le chrono
 int last_time = glutGet(GLUT_ELAPSED_TIME);
 int current_time, ellapsed_time;
 
-//Vertex Data
+// Vertex Data ????????????????????????????????????????
 vector<float> pos;
 vector<float> colors;
 float color[3];
 
-//liste d'affichage
-//GLuint list;
+// Initialisation du Vertex Buffer Object
 GLuint bufferMap;
 #define BUFFER_OFFSET(a) ((char*)NULL + (a))
 
-//Gestion des couleurs
+// Creation des variables utilisees pour la gestion des seuils de textures
 float posNeige;
 float posPlage;
 float posOcean;
 
-// Taille de la fenêtre
+// Initliasitation des proprietes de la fenêtre
 int windowW = 1000;
 int windowH = 550;
 float focale = 70.0f;
@@ -52,20 +58,21 @@ GLvoid deplacementSouris(int x, int y);
 GLvoid redimensionner(int w, int h);
 
 
-//demarrer le chrono
+// Demarrer le chrono
 void Tic()
 {
 	current_time = glutGet(GLUT_ELAPSED_TIME);
 	last_time = current_time;
 }
 
-//arreter le chrono
+// Arreter le chrono
 void Toc()
 {
 	current_time = glutGet(GLUT_ELAPSED_TIME);
 	ellapsed_time = current_time - last_time;
 }
 
+// Remplir le VBO
 void FillDataBuffers()
 {
 	Tic();
@@ -128,6 +135,7 @@ void FillDataBuffers()
 
 }
 
+// Dessin du VBO
 void BuildAndDrawBuffer()
 {
 	#define P_SIZE 3
@@ -201,9 +209,13 @@ GLvoid affichage(){
    //Dessin de l'océan (plan bleu)
    glBegin(GL_QUADS);
 	   glColor3f(0, 0, 0.75);
+	   glTexCoord2f(0, 0);
 	   glVertex3f(0, posOcean, 0);
+	   glTexCoord2f(1, 0);
 	   glVertex3f(taille, posOcean, 0);
+	   glTexCoord2f(1, 1);
 	   glVertex3f(taille, posOcean, taille);
+	   glTexCoord2f(1, 0);
 	   glVertex3f(0, posOcean, taille);
    glEnd();
 
@@ -293,6 +305,7 @@ GLvoid clavier(unsigned char touche, int x, int y) {
 			break;
 		case 'f':          //changer le seuil de neige
 			posNeige++;
+			//?????????????????????????????????????????? Ajouter un recalcul des textures de la map
 			FillDataBuffers();
 			break;
 		case 'v':
