@@ -284,8 +284,8 @@ void heightMap::seuilDefinition(float* seuil){
 
 void heightMap::ecrireFichierObj(){
 
-	int taille = pow(2, getLength());
-	int nbrPoint = pow(taille + 1, 2);
+	int taille = static_cast<int>(pow(2, getLength()));
+	int nbrPoint = static_cast<int>(pow(taille + 1, 2));
 	ofstream myfile;
 	myfile.open("map.obj",ios::out);
 	myfile << "#map.obj\n";

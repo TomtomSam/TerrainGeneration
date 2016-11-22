@@ -1,11 +1,10 @@
+#define _USE_MATH_DEFINES
 #include "FreeFlyCamera.h"
 #include <string>
 #include <cmath>
 
 FreeFlyCamera::FreeFlyCamera(float _moveSensitivity, float camPosX, float camPosY, float camPosZ, float atPosX, float atPosY, float atPosZ)
 {
-
-	float PI = 3.141592;
 
 	//Initialisation
 	deltaTheta = 0.0f;
@@ -34,8 +33,8 @@ FreeFlyCamera::FreeFlyCamera(float _moveSensitivity, float camPosX, float camPos
 	targetPos = camPos + forwardView;
 
 	// angles de rotation (coordonnees spheriques) pour calculer le vecteur vision de la camera
-	angleTheta = 0.5*PI;
-	anglePhi = 0.3*PI;
+	angleTheta = static_cast<float>(0.5*M_PI);
+	anglePhi = static_cast<float>(0.3*M_PI);
 }
 
 
