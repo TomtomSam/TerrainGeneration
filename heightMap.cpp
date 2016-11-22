@@ -251,35 +251,35 @@ void heightMap::giveMaxes(float* max_min){
 	max_min[1]=mini;
 }
 
-void heightMap::vertexColor(float altitude, float snow, float beach, float water, float* color){
+void heightMap::vertexColor(float altitude, Seuil snow, Seuil beach, Seuil water, float* color){
 	float echelle_map=maxHeight-maxDepth;
 	float altitude_ajuste=altitude-maxDepth;
 
-	if(altitude>snow){
+	if(altitude>snow.getHauteur()){
 		color[0] = 1;
 		color[1] = 1;
 		color[2] = 1;
 	}
-	else if(altitude>beach){
+	else if(altitude>beach.getHauteur()){
 		color[0] = 0;
 		color[1] = altitude_ajuste/echelle_map;
 		color[2] = 0;
 	}
-	else if(altitude>water){
+	else if(altitude>water.getHauteur()){
 		color[0] = altitude_ajuste/echelle_map;
 		color[1] = altitude_ajuste/echelle_map;
 		color[2] = 0;
 	}
 }
 
-void heightMap::seuilDefinition(float* seuil){
+Seuil heightMap::seuilDefinition(Seuil limite, float reglage){
 	float maximini[2];
 	giveMaxes(maximini);
 	float distance_minmax=maximini[0]-maximini[1];
 
-	seuil[0] = static_cast<float>(0.8*distance_minmax	+	maximini[1]);//snow
-	seuil[1] = static_cast<float>(0.35*distance_minmax	+	maximini[1]);//beach
-	seuil[2]=static_cast<float>(0.3*distance_minmax		+	maximini[1]);//water
+	limite.setHauteur(reglage*distance_minmax+maximini[1]);
+
+	return limite;
 }
 
 void heightMap::ecrireFichierObj(){

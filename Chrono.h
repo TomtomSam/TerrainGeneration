@@ -1,3 +1,6 @@
+#ifndef CHRONO_H
+#define CHRONO_H
+
 #include <GL/glut.h>
 
 class Chrono
@@ -15,3 +18,4 @@ private:
 	int ellapsed_time;
 };
 
+#endif // CHRONO_H

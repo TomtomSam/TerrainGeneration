@@ -15,6 +15,7 @@ public:
 	Texture();
 	virtual ~Texture();
 	void loadTexture(char* filename);
+	GLuint getTexture();
 
 private:
     GLuint texture;      

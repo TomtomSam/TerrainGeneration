@@ -12,11 +12,10 @@
 
 // Include des headers de classes
 #include "heightMap.h"
-#include "vector3D.h" //????????????????????????????????????
 #include "FreeFlyCamera.h"
 #include "Texture.h"
 #include "Chrono.h"
-// Classe VBO, Classe chrono
+// Classe VBO
 
 // Initialisation de la carte
 heightMap maMap(10);
@@ -40,7 +39,7 @@ FreeFlyCamera cam(static_cast<float>(taille)/100, 0.5*taille, taille, -0.5*taill
 int last_time = glutGet(GLUT_ELAPSED_TIME);
 int current_time, ellapsed_time;
 
-// Vertex Data ????????????????????????????????????????
+// Vertex Data 
 vector<float> pos;
 vector<float> colors;
 float color[3];
@@ -50,16 +49,16 @@ GLuint bufferMap;
 #define BUFFER_OFFSET(a) ((char*)NULL + (a))
 
 // Creation des variables utilisees pour la gestion des seuils de textures
-float posNeige;
-float posPlage;
-float posOcean;
+Seuil neige;
+Seuil plage;
+Seuil ocean;
 
 // Initliasitation des proprietes de la fenêtre
 int windowW = 1000;
 int windowH = 550;
 float focale = 70.0f;
 float Near = 0.1f;
-float Far = (float)taille*2;
+float Far = static_cast<float>(taille*2);
 
 // Déclarations des fonctions de rappel (callbacks)
 GLvoid affichage();
@@ -94,11 +93,11 @@ void FillDataBuffers()
 			pos.push_back(j);
 
 			// Les couleurs
-			maMap.vertexColor(maMap.getHeightMap(i, j), posNeige, posPlage, posOcean, color);
+			maMap.vertexColor(maMap.getHeightMap(i, j), neige, plage, ocean, color);
 			colors.push_back(color[0]);
 			colors.push_back(color[1]);
 			colors.push_back(color[2]);
-			maMap.vertexColor(maMap.getHeightMap(i + 1, j), posNeige, posPlage, posOcean, color);
+			maMap.vertexColor(maMap.getHeightMap(i + 1, j), neige, plage, ocean, color);
 			colors.push_back(color[0]);
 			colors.push_back(color[1]);
 			colors.push_back(color[2]);
@@ -116,11 +115,11 @@ void FillDataBuffers()
 			pos.push_back(j);
 
 			//Les couleurs
-			maMap.vertexColor(maMap.getHeightMap(i + 1, j), posNeige, posPlage, posOcean, color);
+			maMap.vertexColor(maMap.getHeightMap(i + 1, j), neige, plage, ocean, color);
 			colors.push_back(color[0]);
 			colors.push_back(color[1]);
 			colors.push_back(color[2]);
-			maMap.vertexColor(maMap.getHeightMap(i + 2, j), posNeige, posPlage, posOcean, color);
+			maMap.vertexColor(maMap.getHeightMap(i + 2, j), neige, plage, ocean, color);
 			colors.push_back(color[0]);
 			colors.push_back(color[1]);
 			colors.push_back(color[2]);
@@ -204,15 +203,17 @@ GLvoid affichage(){
 
 	// Dessin de l'ocean
 	glBegin(GL_QUADS);
+		glBindTexture(GL_TEXTURE_2D, water.getTexture());
 		glColor3f(0, 0, 0.75);
 		glTexCoord2f(0, 0);
-		glVertex3f(0, posOcean, 0);
+		glVertex3f(0, ocean.getHauteur(), 0);
 		glTexCoord2f(1, 0);
-		glVertex3f(taille, posOcean, 0);
+		glVertex3f(taille, ocean.getHauteur(), 0);
 		glTexCoord2f(1, 1);
-		glVertex3f(taille, posOcean, taille);
+		glVertex3f(taille, ocean.getHauteur(), taille);
 		glTexCoord2f(1, 0);
-		glVertex3f(0, posOcean, taille);
+		glVertex3f(0, ocean.getHauteur(), taille);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	glEnd();
 
 	// Mettre ça dans un VBO
@@ -223,25 +224,25 @@ GLvoid affichage(){
 	for (int i = 0; i <= taille; i++)
 	{
 		glVertex3f(0, maMap.getHeightMap(0, i), i);
-		glVertex3f(0, posOcean, i);
+		glVertex3f(0, ocean.getHauteur(), i);
 	}
 	//en bas
 	for (int i = 0; i <= taille; i++)
 	{
 		glVertex3f(i, maMap.getHeightMap(i, taille), taille);
-		glVertex3f(i, posOcean, taille);
+		glVertex3f(i, ocean.getHauteur(), taille);
 	}
 	//à gauche
 	for (int i = taille; i >= 0; i--)
 	{
 		glVertex3f(taille, maMap.getHeightMap(taille, i), i);
-		glVertex3f(taille, posOcean, i);
+		glVertex3f(taille, ocean.getHauteur(), i);
 	}
 	//en haut
 	for (int i = taille; i >= 0; i--)
 	{
 		glVertex3f(i, maMap.getHeightMap(i, 0), 0);
-		glVertex3f(i, posOcean, 0);
+		glVertex3f(i, ocean.getHauteur(), 0);
 	}
 	glEnd();
 
@@ -296,30 +297,30 @@ GLvoid clavier(unsigned char touche, int x, int y) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		break;
 	case '+': //changer le seuil de l'océan
-		posOcean +=1;
+		ocean++;
 		break;
 	case '-':
-		posOcean -=1;
+		ocean--;
 		break;
 	case 'f':          //changer le seuil de neige
 	case 'F':
-		posNeige++;
+		neige++;
 		//?????????????????????????????????????????? Ajouter un recalcul des textures de la map
 		FillDataBuffers();
 		break;
 	case 'v':
 	case 'V':
-		posNeige--;
+		neige--;
 		FillDataBuffers();
 		break;
 	case 'g':			//changer le seuil de la plage
 	case 'G':
-		posPlage++;
+		plage++;
 		FillDataBuffers();
 		break;
 	case 'b':
 	case 'B':
-		posPlage--;
+		plage--;
 		FillDataBuffers();
 		break;
 	case 27:
@@ -459,12 +460,11 @@ int main (int argc, char *argv[])
 	cout << maxMin[0]-maxMin[1] <<endl;
 
 	//Min et Max des altitudes de la carte
-	float seuils[3];
-	maMap.seuilDefinition(seuils);
-	posNeige = seuils[0];
-	posPlage = seuils[1];
-	posOcean = seuils[2];
-	cout << "neige: " << posNeige<< " plage: " << posPlage << " ocean: " << posOcean << endl<<endl;
+	neige = maMap.seuilDefinition(neige, 0.8);
+	plage = maMap.seuilDefinition(plage, 0.32);
+	ocean = maMap.seuilDefinition(ocean, 0.3);
+
+	cout << "neige: " << neige.getHauteur() << " plage: " << plage.getHauteur() << " ocean: " << ocean.getHauteur() << endl;
 
 	//On rempli les données à envoyer au GPU
 	FillDataBuffers();
@@ -486,6 +486,18 @@ int main (int argc, char *argv[])
 	grass.loadTexture("GRASS.jpg");
 	ice.loadTexture("ICE.jpg");
 	sand.loadTexture("SAND.jpg");
+	glBindTexture(GL_TEXTURE_2D, water.getTexture());
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+	glBindTexture(GL_TEXTURE_2D, grass.getTexture());
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+	glBindTexture(GL_TEXTURE_2D, ice.getTexture());
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+	glBindTexture(GL_TEXTURE_2D, sand.getTexture());
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+
+	// Blending
+   glEnable(GL_BLEND);
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	//Initialisation de GLU
 	glewInit();

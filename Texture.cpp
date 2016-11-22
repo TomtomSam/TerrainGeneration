@@ -3,6 +3,7 @@
 
 Texture::Texture(void)
 {
+	texture = 0;
 }
 
 
@@ -22,4 +23,9 @@ void Texture::loadTexture(char* filename){
 	else{
 		printf("Texture loaded :", filename);
 	}
+}
+
+GLuint Texture::getTexture()
+{
+	return texture;
 }

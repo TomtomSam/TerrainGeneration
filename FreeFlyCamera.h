@@ -1,3 +1,6 @@
+#ifndef FREEFLYCAMERA_H
+#define FREEFLYCAMERA_H
+
 #include "vector3d.h"
 #include <string>
 using namespace std;
@@ -62,3 +65,4 @@ public:
 	~FreeFlyCamera();
 };
 
+#endif // FREEFLYCAMERA_H

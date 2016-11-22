@@ -2,6 +2,7 @@
 #define HEIGHTMAP_H
 
 #include <vector>
+#include "Seuil.h"
 using namespace std;
 
 class heightMap
@@ -36,8 +37,8 @@ class heightMap
         void squareStep(int pas);
 		float getTaille();
         void giveMaxes(float* max_min);
-		void vertexColor(float altitude, float snow, float beach, float water, float* color);
-		void seuilDefinition(float* seuil);
+		void vertexColor(float altitude, Seuil snow, Seuil beach, Seuil water, float* color);
+		Seuil seuilDefinition(Seuil limite, float reglage);
 		void ecrireFichierObj();
 
         //Constructors
