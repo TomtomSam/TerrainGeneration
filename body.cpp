@@ -5,29 +5,30 @@
 #include <ctime>
 #include <Windows.h>
 #include <GL/glew.h>
-#include <GL/glut.h>
-#include <GL/gl.h>
+#include <GL/freeglut.h>
 #include <vector>
 #include "SOIL.h"
 
 // Include des headers de classes
 #include "heightMap.h"
+#include "vector3D.h" 
 #include "FreeFlyCamera.h"
+#include "VBO.h"
 #include "Texture.h"
 #include "Chrono.h"
-// Classe VBO
+// Classe VBO, Classe chrono
 
 // Initialisation de la carte
-heightMap maMap(10);
+heightMap maMap(8);
 
 // Creation des textures
 Texture water;
-Texture grass;
-Texture ice;
-Texture sand;
 
 // Creation du chrono
 Chrono chrono;
+
+// Initialisation du Vertex Buffer Object
+VBO monVBO;
 
 // Initialisation du nombre de points par ligne/colonne
 int taille = pow(2, maMap.getLength());
@@ -35,30 +36,22 @@ int taille = pow(2, maMap.getLength());
 //Initialisation camera: (MoveSensitivity,CampPos,TargetPos)
 FreeFlyCamera cam(static_cast<float>(taille)/100, 0.5*taille, taille, -0.5*taille, 0, -0.5*taille, 0.75*taille);
 
-// Creation des variables utilisees par le chrono
-int last_time = glutGet(GLUT_ELAPSED_TIME);
-int current_time, ellapsed_time;
-
-// Vertex Data 
+// Vertex Data
 vector<float> pos;
 vector<float> colors;
-float color[3];
-
-// Initialisation du Vertex Buffer Object
-GLuint bufferMap;
-#define BUFFER_OFFSET(a) ((char*)NULL + (a))
+vector<float> tex;
 
 // Creation des variables utilisees pour la gestion des seuils de textures
-Seuil neige;
-Seuil plage;
-Seuil ocean;
+float posNeige;
+float posPlage;
+float posOcean;
 
 // Initliasitation des proprietes de la fenêtre
 int windowW = 1000;
 int windowH = 550;
 float focale = 70.0f;
 float Near = 0.1f;
-float Far = static_cast<float>(taille*2);
+float Far = (float)taille*2;
 
 // Déclarations des fonctions de rappel (callbacks)
 GLvoid affichage();
@@ -68,12 +61,15 @@ GLvoid deplacementSouris(int x, int y);
 GLvoid redimensionner(int w, int h);
 
 // Remplissage du VBO
-void FillDataBuffers()
+void FillDataBuffersPosColors()
 {
 	chrono.Tic();
 
 	pos.clear();
 	colors.clear();
+
+	//On recalcule les couleurs de chaque point
+	maMap.mapColor(posNeige,posPlage,posOcean);
 
 	int j = 0;
 
@@ -86,21 +82,36 @@ void FillDataBuffers()
 		{
 			// Les Positions 
 			pos.push_back(i);
-			pos.push_back(maMap.getHeightMap(i, j));
+			pos.push_back(maMap.getHeightMap(i, j)->getHeight());
 			pos.push_back(j);
 			pos.push_back(i + 1);
-			pos.push_back(maMap.getHeightMap(i + 1, j));
+			pos.push_back(maMap.getHeightMap(i + 1, j)->getHeight());
 			pos.push_back(j);
 
 			// Les couleurs
-			maMap.vertexColor(maMap.getHeightMap(i, j), neige, plage, ocean, color);
-			colors.push_back(color[0]);
-			colors.push_back(color[1]);
-			colors.push_back(color[2]);
-			maMap.vertexColor(maMap.getHeightMap(i + 1, j), neige, plage, ocean, color);
-			colors.push_back(color[0]);
-			colors.push_back(color[1]);
-			colors.push_back(color[2]);
+			colors.push_back(maMap.getHeightMap(i, j)->getR());
+			colors.push_back(maMap.getHeightMap(i, j)->getG());
+			colors.push_back(maMap.getHeightMap(i, j)->getB());
+			colors.push_back(maMap.getHeightMap(i + 1, j)->getR());
+			colors.push_back(maMap.getHeightMap(i + 1, j)->getG());
+			colors.push_back(maMap.getHeightMap(i + 1, j)->getB());
+
+			// Les textures
+			if (j % 2 == 0)
+			{
+				tex.push_back(0);//s
+				tex.push_back(0);//t
+				tex.push_back(0);//s
+				tex.push_back(1);//t
+			}
+			else
+			{
+				tex.push_back(1);//s
+				tex.push_back(0);//t
+				tex.push_back(1);//s
+				tex.push_back(1);//t
+			}
+			
 		}
 		// Le dernier point de chaque strip est rentré deux fois dans le vecteur pour faire le virage
 		// Remplissage strip vers la gauche
@@ -108,78 +119,43 @@ void FillDataBuffers()
 		{
 			// Les Positions
 			pos.push_back(i + 1);
-			pos.push_back(maMap.getHeightMap(i + 1, j));
+			pos.push_back(maMap.getHeightMap(i + 1, j)->getHeight());
 			pos.push_back(j);
 			pos.push_back(i + 2);
-			pos.push_back(maMap.getHeightMap(i + 2, j));
+			pos.push_back(maMap.getHeightMap(i + 2, j)->getHeight());
 			pos.push_back(j);
 
 			//Les couleurs
-			maMap.vertexColor(maMap.getHeightMap(i + 1, j), neige, plage, ocean, color);
-			colors.push_back(color[0]);
-			colors.push_back(color[1]);
-			colors.push_back(color[2]);
-			maMap.vertexColor(maMap.getHeightMap(i + 2, j), neige, plage, ocean, color);
-			colors.push_back(color[0]);
-			colors.push_back(color[1]);
-			colors.push_back(color[2]);
+			colors.push_back(maMap.getHeightMap(i + 1, j)->getR());
+			colors.push_back(maMap.getHeightMap(i + 1, j)->getG());
+			colors.push_back(maMap.getHeightMap(i + 1, j)->getB());
+			colors.push_back(maMap.getHeightMap(i + 2, j)->getR());
+			colors.push_back(maMap.getHeightMap(i + 2, j)->getG());
+			colors.push_back(maMap.getHeightMap(i + 2, j)->getB());
+
+			// Les textures
+			if (j % 2 == 0)
+			{
+				tex.push_back(0);//s
+				tex.push_back(0);//t
+				tex.push_back(0);//s
+				tex.push_back(1);//t
+			}
+			else
+			{
+				tex.push_back(1);//s
+				tex.push_back(0);//t
+				tex.push_back(1);//s
+				tex.push_back(1);//t
+			}
 		}
 	}
 
 	chrono.Toc();
 	cout << "Remplissage des donnees effectue en: " << static_cast<float>(chrono.getEllapsed_time()) / 1000 << "s." << endl;
 
+	monVBO.FeedData(pos, colors, tex);
 }
-
-// Dessin du VBO
-void BuildAndDrawBuffer()
-{
-#define P_SIZE 3
-#define C_SIZE 3
-
-	// Creation d'un objet tampon et recuperation de son identifiant
-	glGenBuffers(1, &bufferMap);
-
-	// Bindage du buffer
-	glBindBuffer(GL_ARRAY_BUFFER, bufferMap);
-
-	// On alloue l'espace necessaire en memoire
-	// Il y a 2^n strips à tracer et chaque strip contient 2*(2^n+1) sommets
-	glBufferData(GL_ARRAY_BUFFER,                   // Cible 
-		((2 * (taille + 1)*taille)*P_SIZE*sizeof pos[0]) +  // Taille des positions
-		((2 * (taille + 1)*taille)*C_SIZE*sizeof colors[0]),// Taille des couleurs
-		NULL,                           
-		GL_STREAM_DRAW);                // Mode de dessin
-
-	// Specification des donnees
-	glBufferSubData(GL_ARRAY_BUFFER,
-		0,                            // emplacement des donnees dans le VBO
-		((2 * (taille + 1)*taille)*P_SIZE*sizeof pos[0]), // Taille des donnees
-		&pos[0]);                         // Adresse des donnees
-
-	glBufferSubData(GL_ARRAY_BUFFER,
-		(2 * (taille + 1)*taille)*P_SIZE*sizeof pos[0],   // Emplacement
-		((2 * (taille + 1)*taille)*C_SIZE*sizeof pos[0]), // Taille
-		&colors[0]);                        // Adresse
-
-	glVertexPointer(P_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(0));
-	glColorPointer(C_SIZE, GL_FLOAT, 0, BUFFER_OFFSET((2 * (taille + 1)*taille)*P_SIZE*sizeof pos[0]));
-
-	// Activation des tableaux de sommets 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
-
-	// Dessin des strips
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 2 * (taille + 1)*taille);
-
-	// Desactivation des tableaux de sommets
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_VERTEX_ARRAY);
-
-	// Liberation de la place en memmoire
-	glDeleteBuffers(1, &bufferMap);
-}
-
 
 // Definition de la fonction d'affichage
 GLvoid affichage(){
@@ -196,53 +172,60 @@ GLvoid affichage(){
 	glLoadIdentity();
 
 	// Definition de la position de la camera et ou elle regarde
-	gluLookAt(cam.getcamPos().getVx(), cam.getcamPos().getVy(), cam.getcamPos().getVz(), cam.gettargetPos().getVx(), cam.gettargetPos().getVy(), cam.gettargetPos().getVz(), cam.getupWorld().getVx(), cam.getupWorld().getVy(), cam.getupWorld().getVz());
+	gluLookAt(	cam.getcamPos().getVx()		, cam.getcamPos().getVy()	, cam.getcamPos().getVz()	, 
+				cam.gettargetPos().getVx()	, cam.gettargetPos().getVy(), cam.gettargetPos().getVz(), 
+				cam.getupWorld().getVx()	, cam.getupWorld().getVy()	, cam.getupWorld().getVz()	);
 
-	// Dessin de la map
-	BuildAndDrawBuffer();
 
 	// Dessin de l'ocean
 	glBegin(GL_QUADS);
-		glBindTexture(GL_TEXTURE_2D, water.getTexture());
-		glColor3f(0, 0, 0.75);
-		glTexCoord2f(0, 0);
-		glVertex3f(0, ocean.getHauteur(), 0);
-		glTexCoord2f(1, 0);
-		glVertex3f(taille, ocean.getHauteur(), 0);
-		glTexCoord2f(1, 1);
-		glVertex3f(taille, ocean.getHauteur(), taille);
-		glTexCoord2f(1, 0);
-		glVertex3f(0, ocean.getHauteur(), taille);
-		glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D, water.getTexture());
+	glColor3f(0, 0, 0.75);
+	glTexCoord2f(0, 0);
+	glVertex3f(0, posOcean, 0);
+	glTexCoord2f(1, 0);
+	glVertex3f(taille, posOcean, 0);
+	glTexCoord2f(1, 1);
+	glVertex3f(taille, posOcean, taille);
+	glTexCoord2f(0, 1);
+	glVertex3f(0, posOcean, taille);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glEnd();
+	
+	
 
-	// Mettre ça dans un VBO
+
+	// Dessin de la map
+	monVBO.BuildAndDrawBuffer();
+
+	//Le cahe Misère sure les cotés de la map
+	// TODO:Mettre ça dans un VBO
 	glBegin(GL_TRIANGLE_STRIP);
 	glColor3f(0, 0, 0);
-	//on commrnce en (0,0)
+	//on commence en (0,0)
 	//à droite
 	for (int i = 0; i <= taille; i++)
 	{
-		glVertex3f(0, maMap.getHeightMap(0, i), i);
-		glVertex3f(0, ocean.getHauteur(), i);
+		glVertex3f(0, maMap.getHeightMap(0, i)->getHeight(), i);
+		glVertex3f(0, posOcean, i);
 	}
 	//en bas
 	for (int i = 0; i <= taille; i++)
 	{
-		glVertex3f(i, maMap.getHeightMap(i, taille), taille);
-		glVertex3f(i, ocean.getHauteur(), taille);
+		glVertex3f(i, maMap.getHeightMap(i, taille)->getHeight(), taille);
+		glVertex3f(i, posOcean, taille);
 	}
 	//à gauche
 	for (int i = taille; i >= 0; i--)
 	{
-		glVertex3f(taille, maMap.getHeightMap(taille, i), i);
-		glVertex3f(taille, ocean.getHauteur(), i);
+		glVertex3f(taille, maMap.getHeightMap(taille, i)->getHeight(), i);
+		glVertex3f(taille, posOcean, i);
 	}
 	//en haut
 	for (int i = taille; i >= 0; i--)
 	{
-		glVertex3f(i, maMap.getHeightMap(i, 0), 0);
-		glVertex3f(i, ocean.getHauteur(), 0);
+		glVertex3f(i, maMap.getHeightMap(i, 0)->getHeight(), 0);
+		glVertex3f(i, posOcean, 0);
 	}
 	glEnd();
 
@@ -256,10 +239,10 @@ GLvoid affichage(){
 	if (chrono.getEllapsed_time() < 17)
 	{ 
 		Sleep(17 - chrono.getEllapsed_time());
+		chrono.Toc();
 	}
 
-	chrono.Toc();
-	cout << "FPS: " << chrono.getEllapsed_time() << endl;
+	cout << "FPS: " << static_cast<int>(1000 / static_cast<float>(chrono.getEllapsed_time())) << endl;
 
 }
 
@@ -297,31 +280,30 @@ GLvoid clavier(unsigned char touche, int x, int y) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		break;
 	case '+': //changer le seuil de l'océan
-		ocean++;
+		posOcean +=1;
 		break;
 	case '-':
-		ocean--;
+		posOcean -=1;
 		break;
 	case 'f':          //changer le seuil de neige
 	case 'F':
-		neige++;
-		//?????????????????????????????????????????? Ajouter un recalcul des textures de la map
-		FillDataBuffers();
+		posNeige++;
+		FillDataBuffersPosColors();
 		break;
 	case 'v':
 	case 'V':
-		neige--;
-		FillDataBuffers();
+		posNeige--;
+		FillDataBuffersPosColors();
 		break;
 	case 'g':			//changer le seuil de la plage
 	case 'G':
-		plage++;
-		FillDataBuffers();
+		posPlage++;
+		FillDataBuffersPosColors();
 		break;
 	case 'b':
 	case 'B':
-		plage--;
-		FillDataBuffers();
+		posPlage--;
+		FillDataBuffersPosColors();
 		break;
 	case 27:
 		exit(0);
@@ -386,7 +368,6 @@ GLvoid souris(int bouton, int etat, int x, int y)
 		if (etat == GLUT_UP) 
 		{
 			cam.setBouttonUp();
-			int h = 2;
 		}
 		else  
 		{	// state = GLUT_DOWN
@@ -444,6 +425,37 @@ GLvoid redimensionner(int w, int h) {
 int main (int argc, char *argv[])
 {
 	srand(time(NULL));
+	pos.clear();
+	colors.clear();
+	tex.clear();
+
+	// Initialisation de GLUT
+	glutInit(&argc, argv);
+	// Choix du mode d'affichage (ici RVB)
+	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
+	// Position initiale de la fenetre GLUT
+	glutInitWindowPosition(200, 70);
+	// Taille initiale de la fenetre GLUT
+	glutInitWindowSize(windowW, windowH);
+	// Creation de la fenetre GLUT
+	glutCreateWindow("Map Generation");
+	//Initialisation de GLU
+	glewInit();
+	// Définition de la couleur d'effacement du framebuffer
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	//Activation Z-buffer
+	glEnable(GL_DEPTH_TEST);
+
+	// At initialization
+	glEnable(GL_TEXTURE_2D);
+	//Load/Bind Textures
+	water.loadTexture("WATER.jpg");
+	glBindTexture(GL_TEXTURE_2D, water.getTexture());
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+	
+	// Blending
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	chrono.Tic();
 	//Initialisation Map
@@ -457,60 +469,21 @@ int main (int argc, char *argv[])
 	float maxMin[2];
 	maMap.giveMaxes(maxMin);
 	cout << "Max: " << maxMin[0] << " Min: " << maxMin[1] << endl;
-	cout << maxMin[0]-maxMin[1] <<endl;
+	cout << maxMin[0] - maxMin[1] << endl;
 
 	//Min et Max des altitudes de la carte
-	neige = maMap.seuilDefinition(neige, 0.8);
-	plage = maMap.seuilDefinition(plage, 0.32);
-	ocean = maMap.seuilDefinition(ocean, 0.3);
-
-	cout << "neige: " << neige.getHauteur() << " plage: " << plage.getHauteur() << " ocean: " << ocean.getHauteur() << endl;
+	float seuils[3];
+	maMap.seuilDefinition(seuils);
+	posNeige = seuils[0];
+	posPlage = seuils[1];
+	posOcean = seuils[2];
+	cout << "neige: " << posNeige << " plage: " << posPlage << " ocean: " << posOcean << endl << endl;
 
 	//On rempli les données à envoyer au GPU
-	FillDataBuffers();
-
-	// Initialisation de GLUT
-	glutInit(&argc, argv);
-	// Choix du mode d'affichage (ici RVB)
-	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
-	// Position initiale de la fenetre GLUT
-	glutInitWindowPosition(200, 70);
-	// Taille initiale de la fenetre GLUT
-	glutInitWindowSize(windowW, windowH);
-	// Creation de la fenetre GLUT
-	glutCreateWindow("Map Generation");
-
-	// At initialization
-	glEnable(GL_TEXTURE_2D);
-	water.loadTexture("WATER.jpg");
-	grass.loadTexture("GRASS.jpg");
-	ice.loadTexture("ICE.jpg");
-	sand.loadTexture("SAND.jpg");
-	glBindTexture(GL_TEXTURE_2D, water.getTexture());
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-	glBindTexture(GL_TEXTURE_2D, grass.getTexture());
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-	glBindTexture(GL_TEXTURE_2D, ice.getTexture());
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-	glBindTexture(GL_TEXTURE_2D, sand.getTexture());
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-
-	// Blending
-   glEnable(GL_BLEND);
-   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	//Initialisation de GLU
-	glewInit();
-
-	// Définition de la couleur d'effacement du framebuffer
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-	glEnable(GL_DEPTH_TEST);
+	FillDataBuffersPosColors();
 
 	// Définition des fonctions de callbacks
 	glutDisplayFunc(affichage);
-
-	// pour que l'on puisse rester appuye sur les touches
 	glutKeyboardFunc(clavier);
 	glutKeyboardUpFunc(clavierUp);
 	glutSpecialUpFunc(releaseSpecialKey);

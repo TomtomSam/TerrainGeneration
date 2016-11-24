@@ -1,8 +1,11 @@
 #include "Chrono.h"
-
+#include <GL/freeglut.h>
 
 Chrono::Chrono(void)
 {
+	last_time = glutGet(GLUT_ELAPSED_TIME);
+	current_time = glutGet(GLUT_ELAPSED_TIME);
+	ellapsed_time = current_time - last_time;
 }
 
 

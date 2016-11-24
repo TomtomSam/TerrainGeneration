@@ -2,14 +2,17 @@
 
 Point::Point()
 {
-    //ctor
+	r = 1;
+	g = 1;
+	b = 1;
 }
 
-Point::Point(int _lig, int _col)
+Point::Point(int _lig, int _col, float _height)
 {
     //ctor
     lig=static_cast<float>(_lig);
     col=static_cast<float>(_col);
+	height = _height;
 }
 
 Point::~Point()

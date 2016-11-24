@@ -2,8 +2,8 @@
 #define TEX_H
 
 #include <windows.h>
-#include <GL/GL.h>
-#include <GL/glut.h>
+#include <GL/glew.h>
+#include <GL/freeglut.h>
 #include <fstream>
 #include "SOIL.h"
 
@@ -18,7 +18,8 @@ public:
 	GLuint getTexture();
 
 private:
-    GLuint texture;      
+    GLuint texture; 
+	
 }; 
 
 #endif //TEX_H

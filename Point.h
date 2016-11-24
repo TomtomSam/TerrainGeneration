@@ -5,7 +5,7 @@ class Point
 {
     public:
         Point();
-        Point(int _lig, int _col);
+        Point(int _lig, int _col,float _height);
         virtual ~Point();
 
         float getLig();

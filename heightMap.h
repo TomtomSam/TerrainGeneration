@@ -2,7 +2,7 @@
 #define HEIGHTMAP_H
 
 #include <vector>
-#include "Seuil.h"
+#include "Point.h"
 using namespace std;
 
 class heightMap
@@ -12,7 +12,7 @@ class heightMap
         int width;
         float maxDepth;
         float maxHeight;
-        vector< vector<float> > heightMatrix;
+        vector< vector<Point*> > heightMatrix;
 
     public:
         //Getters
@@ -20,14 +20,14 @@ class heightMap
         int getWidth();
         float getMaxDepth();
         float getMaxHeight();
-        float getHeightMap(int lig, int col);
+        Point* getHeightMap(int lig, int col);
 
         //Setters
         void setLength(int myLength);
         void setWidth(int myWidth);
         void setMaxDepth(float myMaxDepth);
         void setMaxHeight(float myMaxHeight);
-        void setHeightMap(int lig, int col, float Height);
+        void setHeightMap(int lig, int col, Point* point);
 
         //Methods
         void initialisation();
@@ -37,8 +37,9 @@ class heightMap
         void squareStep(int pas);
 		float getTaille();
         void giveMaxes(float* max_min);
-		void vertexColor(float altitude, Seuil snow, Seuil beach, Seuil water, float* color);
-		Seuil seuilDefinition(Seuil limite, float reglage);
+		void vertexColor(int lig, int col, float snow, float beach, float water);
+		void mapColor(float snow, float beach, float water);
+		void seuilDefinition(float* seuil);
 		void ecrireFichierObj();
 
         //Constructors

@@ -24,7 +24,7 @@ float heightMap::getMaxHeight(){
     return maxHeight;
 }
 
-float heightMap::getHeightMap(int lig, int col){
+Point* heightMap::getHeightMap(int lig, int col){
     return heightMatrix[lig][col];
 }
 
@@ -45,8 +45,8 @@ void heightMap::setMaxHeight(float myMaxHeight){
     maxHeight=myMaxHeight;
 }
 
-void heightMap::setHeightMap(int lig, int col, float Height){
-    heightMatrix[lig][col]=Height;
+void heightMap::setHeightMap(int lig, int col, Point* point){
+    heightMatrix[lig][col]=point;
 }
 
 //METHODS
@@ -95,10 +95,10 @@ void heightMap::initialisation(){
     maxIndexLine=static_cast<int>(pow(2,width));
 
     //Setting the height of the map's corners
-    setHeightMap(0,0,corner1);
-    setHeightMap(0,maxIndexColumn,corner2);
-    setHeightMap(maxIndexLine,maxIndexColumn,corner3);
-    setHeightMap(maxIndexLine,0,corner4);
+    setHeightMap(0,0,new Point(0,0,corner1));
+	setHeightMap(0, maxIndexColumn, new Point(0, maxIndexColumn, corner2));
+	setHeightMap(maxIndexLine, maxIndexColumn, new Point(maxIndexLine, maxIndexColumn, corner3));
+	setHeightMap(maxIndexLine, 0, new Point(maxIndexLine, 0, corner4));
 }
 
 void heightMap::initialisationAuto(){
@@ -121,10 +121,10 @@ void heightMap::initialisationAuto(){
 	corner4 = 0;
 
     //Setting the height of the map's corners
-    setHeightMap(0,0,corner1);
-    setHeightMap(0,maxIndexColumn,corner2);
-    setHeightMap(maxIndexLine,maxIndexColumn,corner3);
-    setHeightMap(maxIndexLine,0,corner4);
+	setHeightMap(0, 0, new Point(0, 0, corner1));
+	setHeightMap(0, maxIndexColumn, new Point(0, maxIndexColumn, corner2));
+	setHeightMap(maxIndexLine, maxIndexColumn, new Point(maxIndexLine, maxIndexColumn, corner3));
+	setHeightMap(maxIndexLine, 0, new Point(maxIndexLine, 0, corner4));
 }
 
 
@@ -138,10 +138,10 @@ void heightMap::diamondStep(int pas){
     {
         for(int y=pas;y<=h;y+=i)
         {
-            moyenne+=heightMatrix[x-pas][y-pas];
-            moyenne+=heightMatrix[x-pas][y+pas];
-            moyenne+=heightMatrix[x+pas][y+pas];
-            moyenne+=heightMatrix[x+pas][y-pas];
+            moyenne+=heightMatrix[x-pas][y-pas]->getHeight();
+			moyenne += heightMatrix[x - pas][y + pas]->getHeight();
+			moyenne += heightMatrix[x + pas][y + pas]->getHeight();
+			moyenne += heightMatrix[x + pas][y - pas]->getHeight();
             moyenne/=4;
 
             random=static_cast<float>((rand()%(2*pas+1))-pas);
@@ -149,7 +149,7 @@ void heightMap::diamondStep(int pas){
 			{
 				random = static_cast<float>((rand() % (2 * pas + 1)) - pas);
 			}
-            heightMatrix[x][y]=moyenne+random;
+            heightMatrix[x][y]->setHeight(moyenne+random);
             moyenne=0.0;
         }
     }
@@ -180,22 +180,22 @@ void heightMap::squareStep(int pas){
             n=0;
             if(x>=pas)
             {
-                somme+=heightMatrix[x-pas][y];
+				somme += heightMatrix[x - pas][y]->getHeight();
                 n++;
             }
             if(x+pas<h)
             {
-                somme+=heightMatrix[x+pas][y];
+				somme += heightMatrix[x + pas][y]->getHeight();
                 n++;
             }
             if(y>=pas)
             {
-                somme+=heightMatrix[x][y-pas];
+				somme += heightMatrix[x][y - pas]->getHeight();
                 n++;
             }
             if(y+pas<h)
             {
-                somme+=heightMatrix[x][y+pas];
+				somme += heightMatrix[x][y + pas]->getHeight();
                 n++;
             }
 
@@ -204,7 +204,7 @@ void heightMap::squareStep(int pas){
 			{
 				random = static_cast<float>((rand() % (2 * pas + 1)) - pas);
 			}
-            heightMatrix[x][y]=(somme/n)+random;
+            heightMatrix[x][y]->setHeight((somme/n)+random);
         }
     }
 
@@ -236,13 +236,13 @@ void heightMap::giveMaxes(float* max_min){
 	{
 		for (int b = 0; b <= pow(2, width); b++)
 		{
-			if (heightMatrix[a][b]>maxi)
+			if (heightMatrix[a][b]->getHeight()>maxi)
 			{
-				maxi = heightMatrix[a][b];
+				maxi = heightMatrix[a][b]->getHeight();
 			}
-			if (heightMatrix[a][b]<mini)
+			if (heightMatrix[a][b]->getHeight()<mini)
 			{
-				mini = heightMatrix[a][b];
+				mini = heightMatrix[a][b]->getHeight();
 			}
 		}
 	}
@@ -251,35 +251,48 @@ void heightMap::giveMaxes(float* max_min){
 	max_min[1]=mini;
 }
 
-void heightMap::vertexColor(float altitude, Seuil snow, Seuil beach, Seuil water, float* color){
-	float echelle_map=maxHeight-maxDepth;
-	float altitude_ajuste=altitude-maxDepth;
+void heightMap::vertexColor(int lig, int col, float snow, float beach, float water){
+	float echelle_map = maxHeight - maxDepth;
+	float altitude = heightMatrix[lig][col]->getHeight();
+	float altitude_ajuste = altitude - maxDepth;
+	float color = altitude_ajuste / echelle_map;
 
-	if(altitude>snow.getHauteur()){
-		color[0] = 1;
-		color[1] = 1;
-		color[2] = 1;
+	if (altitude>snow){
+		heightMatrix[lig][col]->setR(1);
+		heightMatrix[lig][col]->setG(1);
+		heightMatrix[lig][col]->setB(1);
 	}
-	else if(altitude>beach.getHauteur()){
-		color[0] = 0;
-		color[1] = altitude_ajuste/echelle_map;
-		color[2] = 0;
+	else if (altitude>beach){
+		heightMatrix[lig][col]->setR(0);
+		heightMatrix[lig][col]->setG(color);
+		heightMatrix[lig][col]->setB(0);
 	}
-	else if(altitude>water.getHauteur()){
-		color[0] = altitude_ajuste/echelle_map;
-		color[1] = altitude_ajuste/echelle_map;
-		color[2] = 0;
+	else if (altitude>water){
+		heightMatrix[lig][col]->setR(color);
+		heightMatrix[lig][col]->setG(color);
+		heightMatrix[lig][col]->setB(0);
 	}
 }
 
-Seuil heightMap::seuilDefinition(Seuil limite, float reglage){
+void heightMap::mapColor(float snow, float beach, float water)
+{
+	for (int l = 0; l<=pow(2, width); l++)
+	{
+		for (int c = 0; c<=pow(2, length); c++)
+		{
+			vertexColor(l, c, snow, beach, water);
+		}
+	}
+}
+
+void heightMap::seuilDefinition(float* seuil){
 	float maximini[2];
 	giveMaxes(maximini);
 	float distance_minmax=maximini[0]-maximini[1];
 
-	limite.setHauteur(reglage*distance_minmax+maximini[1]);
-
-	return limite;
+	seuil[0] = static_cast<float>(0.8*distance_minmax	+	maximini[1]);//snow
+	seuil[1] = static_cast<float>(0.35*distance_minmax	+	maximini[1]);//beach
+	seuil[2]=static_cast<float>(0.3*distance_minmax		+	maximini[1]);//water
 }
 
 void heightMap::ecrireFichierObj(){
@@ -297,7 +310,7 @@ void heightMap::ecrireFichierObj(){
 	{
 		for (int j = 0; j <= taille; j++)
 		{
-			myfile << "v "<<i<<" "<<getHeightMap(i,j)<<" "<<j<<"\n";
+			myfile << "v " << i << " " << getHeightMap(i, j)->getHeight() << " " << j << "\n";
 		}
 	}
 
@@ -337,10 +350,10 @@ heightMap::heightMap(){
 
     for(int l=0;l<1024;l++) //By default the map's dimensions are 1024x1024
     {
-        vector<float> row;
+        vector<Point*> row;
         for(int c=0;c<1024;c++)
         {
-            row.push_back(0.0);
+            row.push_back(new Point(0,0,0));
         }
         heightMatrix.push_back(row);
     }
@@ -348,7 +361,7 @@ heightMap::heightMap(){
 
 heightMap::heightMap(int taille){
 
-	if (taille > 15){ taille = 15; }
+	if (taille > 11){ taille = 10; }
 
 	setLength(taille);
 	setWidth(taille);
@@ -357,10 +370,10 @@ heightMap::heightMap(int taille){
 
 	for (int l = 0; l<1 + pow(2, taille); l++)
 	{
-		vector<float> row;
+		vector<Point*> row;
 		for (int c = 0; c<1 + pow(2, taille); c++)
 		{
-			row.push_back(0.0);
+			row.push_back(new Point(0, 0, 0));
 		}
 		heightMatrix.push_back(row);
 	}
@@ -374,12 +387,12 @@ heightMap::heightMap(int myLength, int myWidth, float myMaxDepth, float myMaxHei
 
     for(int l=0;l<1+pow(2,myWidth);l++)
     {
-        vector<float> row;
+        vector<Point *> row;
         for(int c=0;c<1+pow(2,myLength);c++)
-        {
-            row.push_back(0.0);
-        }
-        heightMatrix.push_back(row);
+		{
+			row.push_back(new Point(0, 0, 0));
+		}
+		heightMatrix.push_back(row);
     }
 }
 
