@@ -2,6 +2,8 @@
 #define HEIGHTMAP_H
 
 #include <vector>
+#include "Point.h"
+#include "ColorRamp.h"
 using namespace std;
 
 class heightMap
@@ -9,35 +11,56 @@ class heightMap
     private:
         int length;
         int width;
-        int maxDepth;
-        int maxHeight;
-        vector< vector<int> > heightMatrix;
+        float maxDepth;
+        float maxHeight;
+		float posOcean;
+        vector< vector<Point*> > heightMatrix;
+
+		//Data pour le VBO
+		vector<float> pos;
+		vector<float> colors;
+		vector<float> tex;
+
+		//Rampe de couleur Biomes
+		ColorRamp laRampe;
 
     public:
         //Getters
         int getLength();
-        int getWidthth();
-        int getMaxDepth();
-        int getMaxHeight();
-        int getHeightMap(int lig, int col);
+        int getWidth();
+        float getMaxDepth();
+        float getMaxHeight();
+		float getPosOcean();
+        Point* getHeightMap(int lig, int col);
+		vector<float> getPos();
+		vector<float> getCol();
+		vector<float> getTex();
 
         //Setters
         void setLength(int myLength);
         void setWidth(int myWidth);
-        void setMaxDepth(int myMaxDepth);
-        void setMaxHeight(int myMaxHeight);
-        void setHeightMap(int lig, int col, int Height);
+        void setMaxDepth(float myMaxDepth);
+        void setMaxHeight(float myMaxHeight);
+        void setHeightMap(int lig, int col, Point* point);
+		void setPosOcean(float _pos);
 
         //Methods
-        void affichage();
         void initialisation();
         void initialisationAuto();
-        void diamondStep();
-        void squareStep();
+        void generateMatrix();
+        void diamondStep( int pas);
+        void squareStep(int pas);
+		float getTaille();
+        void giveMaxes(float* max_min);
+		void mapColor();
+		void seuilDefinition(float* seuil);
+		void ecrireFichierObj();
+		void FillDataBuffersPosColors();
 
         //Constructors
         heightMap();
-        heightMap(int myLength, int myWidth, int myMaxDepth, int myMaxHeight);
+        heightMap(int taille);
+        heightMap(int myLength, int myWidth, float myMaxDepth, float myMaxHeight);
 
         //Destructor
         virtual ~heightMap();
