@@ -3,6 +3,7 @@
 
 #include <GL/glew.h>
 #include <sstream>
+#include <iostream>
 #include <fstream>
 #include <vector>
 using namespace std;
@@ -13,16 +14,16 @@ public:
 	Shader(void);
 	~Shader(void);
 
-	bool LoadShader(string sFile, int a_iType);
-	void DeleteShader();
-	bool GetLinesFromFile(string sFile, bool bIncludePart, vector<string>* vResult);
-	bool IsLoaded();
-	GLuint GetShaderID();
+	//void loadShader(string sFile, GLenum a_iType);
+	void deleteShader();
+	GLuint getShaderID();
+	void createShaderID(GLenum shader_type);
+	string readFile(const char *filePath);
+	void loadShader(const char *path, GLenum shadertype);
 
 private:
 	GLuint shaderID;
-	int type; // GL_VERTEX_SHADER or GL_FRAGMENT_SHADER
-	bool loaded; // Whether shader was loaded and compiled
+	GLenum type; // GL_VERTEX_SHADER or GL_FRAGMENT_SHADER
 };
 
 #endif //SHADER_H

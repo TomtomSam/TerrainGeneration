@@ -5,18 +5,20 @@
 /**************************** updated on 30/11/2016 ***************************/
 /******************************************************************************/
 
+// Choix du namespace
+using namespace std;
+
+
 // Include des libraires
-#include <ctime>
 #include <Windows.h>
 
 // Include des headers de classes
 #include "heightMap.h"
-#include "vector3D.h" 
 #include "FreeFlyCamera.h"
 #include "VBO.h"
 #include "Texture.h"
-#include "Chrono.h"
 #include "Program.h"
+#include <iostream>
 
 // Initialisation de la carte
 heightMap maMap(7);
@@ -24,16 +26,6 @@ heightMap maMap(7);
 // Creation des textures
 Texture water;
 Texture grass;
-
-// Creation des shaders
-/*Shader VS, FS;
-Program prog;*/
-//VS.vertexShader();
-//FS.fragmentShader();
-/*prog.addShaderToProgram(&VS);
-prog.addShaderToProgram(&FS);
-prog.linkProgram();
-prog.useProgram();*/ 
 
 // Creation du chrono
 Chrono chrono;
@@ -185,15 +177,14 @@ GLvoid clavier(unsigned char touche, int x, int y) {
 	case 'I':
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		break;
-	case 'u': //gestion de la dilatation lateral de la map
-	case 'U':
-		maMap.setDilatation(maMap.getDilatation()+1);
-		cout << maMap.getDilatation() <<endl;
+		/*case 'h': // shader activate
+		case 'H':
+		glUseProgram(prog.getProgramID());
 		break;
-	case 'j':
-	case 'J':
-		maMap.setDilatation(maMap.getDilatation()-1);
-		break;
+		case 'y': // shader deactivate
+		case 'Y':
+		glUseProgram(0);
+		break; */
 	case '+': //changer le seuil de l'océan
 		maMap.setPosOcean(maMap.getPosOcean()+1);
 		monVBO.FeedData(maMap.getPos(), maMap.getCol(), maMap.getTex());
@@ -336,13 +327,23 @@ int main (int argc, char *argv[])
 	glutInitWindowSize(windowW, windowH);
 	// Creation de la fenetre GLUT
 	glutCreateWindow("Map Generation");
-	//Initialisation de GLU
+	//Initialisation de GLEW
 	glewInit();
 	// Définition de la couleur d'effacement du framebuffer
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	//Activation Z-buffer
 	glEnable(GL_DEPTH_TEST);
 
+	// Creation des shaders
+	Shader VS,FS; 
+	Program prog;
+	VS.loadShader("vertexShader.vert", GL_VERTEX_SHADER);
+	FS.loadShader("fragmentShader.frag", GL_FRAGMENT_SHADER);
+	prog.createProgram();
+	prog.addShaderToProgram(&VS);
+	prog.addShaderToProgram(&FS);
+	prog.linkProgram(&VS, &FS);
+	prog.useProgram();
 
 	// At initialization
 	glEnable(GL_TEXTURE_2D);
@@ -382,6 +383,7 @@ int main (int argc, char *argv[])
 
 	// Lancement de la boucle infinie GLUT
 	glutMainLoop();
+
 
 	return 0;
 }
