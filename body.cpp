@@ -1,13 +1,14 @@
-/******************************************************************************/
-/************************ FRACTAL LANDSCAPES GENERATION ***********************/
-/********************* by Bastien TOUBHANS & Thomas SAMUEL ********************/
-/**************************** created on 06/10/2016 ***************************/
-/**************************** updated on 30/11/2016 ***************************/
-/******************************************************************************/
-
 // Include des libraires
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
 #include <ctime>
 #include <Windows.h>
+#include <GL/glew.h>
+#include <GL/freeglut.h>
+#include <vector>
+#include <string>
+#include "SOIL.h"
 
 // Include des headers de classes
 #include "heightMap.h"
@@ -16,7 +17,6 @@
 #include "VBO.h"
 #include "Texture.h"
 #include "Chrono.h"
-#include "Program.h"
 
 // Initialisation de la carte
 heightMap maMap(7);
@@ -24,16 +24,6 @@ heightMap maMap(7);
 // Creation des textures
 Texture water;
 Texture grass;
-
-// Creation des shaders
-/*Shader VS, FS;
-Program prog;*/
-//VS.vertexShader();
-//FS.fragmentShader();
-/*prog.addShaderToProgram(&VS);
-prog.addShaderToProgram(&FS);
-prog.linkProgram();
-prog.useProgram();*/ 
 
 // Creation du chrono
 Chrono chrono;
@@ -61,7 +51,7 @@ GLvoid souris(int bouton, int etat, int x, int y);
 GLvoid deplacementSouris(int x, int y);
 GLvoid redimensionner(int w, int h);
 
-
+string lol = "lol!";
 
 // Definition de la fonction d'affichage
 GLvoid affichage(){
@@ -79,14 +69,24 @@ GLvoid affichage(){
 
 	// Definition de la position de la camera et ou elle regarde
 	gluLookAt(	cam.getcamPos().getVx()		, cam.getcamPos().getVy()	, cam.getcamPos().getVz()	, 
-		cam.gettargetPos().getVx()	, cam.gettargetPos().getVy(), cam.gettargetPos().getVz(), 
-		cam.getupWorld().getVx()	, cam.getupWorld().getVy()	, cam.getupWorld().getVz()	);
+				cam.gettargetPos().getVx()	, cam.gettargetPos().getVy(), cam.gettargetPos().getVz(), 
+				cam.getupWorld().getVx()	, cam.getupWorld().getVy()	, cam.getupWorld().getVz()	);
+
+	
+	//Afficher text
+	glColor3f(1, 1, 1);
+	glRasterPos3f(0, 0, 0);
+	for (int i = 0; i < lol.size(); i++)
+	{
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, lol[i]);
+	}
+	
 
 	// DESSIN DE LA MAP
-	glBindTexture(GL_TEXTURE_2D, grass.getTexture());
+	glBindTexture(GL_TEXTURE_2D, water.getTexture());
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
 	monVBO.BuildAndDrawBuffer();
-
+	
 
 	//Le cache Misère sur les cotés de la map
 	// TODO:Mettre ça dans un VBO
@@ -134,6 +134,7 @@ GLvoid affichage(){
 	glTexCoord2f(0, 1);
 	glVertex3f(0, maMap.getPosOcean(), taille);
 	glEnd();
+
 
 	// Affichage ecran
 	glFlush();
@@ -185,21 +186,12 @@ GLvoid clavier(unsigned char touche, int x, int y) {
 	case 'I':
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		break;
-	case 'u': //gestion de la dilatation lateral de la map
-	case 'U':
-		maMap.setDilatation(maMap.getDilatation()+1);
-		cout << maMap.getDilatation() <<endl;
-		break;
-	case 'j':
-	case 'J':
-		maMap.setDilatation(maMap.getDilatation()-1);
-		break;
 	case '+': //changer le seuil de l'océan
 		maMap.setPosOcean(maMap.getPosOcean()+1);
 		monVBO.FeedData(maMap.getPos(), maMap.getCol(), maMap.getTex());
 		break;
 	case '-':
-		maMap.setPosOcean(maMap.getPosOcean()-1);
+		maMap.setPosOcean(maMap.getPosOcean() - 1);
 		monVBO.FeedData(maMap.getPos(), maMap.getCol(), maMap.getTex());
 		break;
 	case 'w':
@@ -350,10 +342,10 @@ int main (int argc, char *argv[])
 	water.loadTexture("WATER.jpg");
 	grass.loadTexture("GRASS.jpg");
 	// Blending
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glBlendFuncSeparate(GL_SRC_COLOR, GL_DST_COLOR, GL_ZERO, GL_ONE);
-
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+	
 	//Initialisation Map
 	maMap.initialisationAuto();
 	//On génère la heightMap
