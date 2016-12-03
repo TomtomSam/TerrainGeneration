@@ -14,7 +14,7 @@ class heightMap
         float maxDepth;
         float maxHeight;
 		float posOcean;
-		float dilatation;
+		float dilatation; //Permet de dilater la map avec la molette de la souris
         vector< vector<Point*> > heightMatrix;
 
 		//Data pour le VBO
