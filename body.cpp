@@ -19,7 +19,7 @@
 #include "Chrono.h"
 
 // Initialisation de la carte
-heightMap maMap(10);
+heightMap maMap(8);
 
 // Creation des textures
 //Texture water;
@@ -53,6 +53,9 @@ GLvoid deplacementSouris(int x, int y);
 GLvoid redimensionner(int w, int h);
 GLvoid dilaterMap(int bouton, int dir, int x, int y);
 
+void compteurFPS();
+void dessinOcean();
+void dessinCacheMisere();
 
 // Definition de la fonction d'affichage
 GLvoid affichage(){
@@ -68,29 +71,7 @@ GLvoid affichage(){
 	//***************
 	//COMPTEUR DE FPS
 	//***************
-	//Il faut mettre le text en projection orthographique
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluOrtho2D(0.0, windowW, 0.0, windowH);
-	//Affichage du texte
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	//Couleur du texte
-	if (FPS>55){glColor3f(0.0f, 1.0f, 0.0f);}
-	if (FPS<56 && FPS>29){ glColor3f(1.0f, 0.5f, 0.0f); }
-	if (FPS<30){ glColor3f(1.0f, 0.0f, 0.0f); }
-	
-	glRasterPos2i(10, windowH-30);
-	string s = to_string(FPS)+" FPS";
-
-	void * font = GLUT_BITMAP_TIMES_ROMAN_24;
-	//void * font = GLUT_BITMAP_HELVETICA_18; 
-	//void * font = GLUT_BITMAP_9_BY_15;
-	for (string::iterator i = s.begin(); i != s.end(); ++i)
-	{
-		char c = *i;
-		glutBitmapCharacter(font, c);
-	}
+	compteurFPS();//Affiche les FPS 
 
 	//ON REPASSE EN MODE PERSPECTIVE POUR LA MAP
 	// Projection
@@ -120,57 +101,15 @@ GLvoid affichage(){
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);*/
 	monVBO.BuildAndDrawBuffer();
 	
-
 	//****************
 	// LE CACHE MISERE
 	//****************
-	// TODO:Mettre ça dans un VBO
-	glBegin(GL_TRIANGLE_STRIP);
-	glColor3f(0, 0, 0);
-	//on commence en (0,0)
-	//à droite
-	for (int i = 0; i <= taille; i++)
-	{
-		glVertex3f(0, maMap.getHeightMap(0, i)->getHeight()*(1 + (maMap.getDilatation()- 1) / 3), i*maMap.getDilatation());
-		glVertex3f(0						, maMap.getPosOcean()							, i*maMap.getDilatation());
-	}
-	//en bas
-	for (int i = 0; i <= taille; i++)
-	{
-		glVertex3f(i*maMap.getDilatation(), maMap.getHeightMap(i, taille)->getHeight()*(1 + (maMap.getDilatation() - 1) / 3), taille*maMap.getDilatation());
-		glVertex3f(i*maMap.getDilatation()	, maMap.getPosOcean()							, taille*maMap.getDilatation());
-	}
-	//à gauche
-	for (int i = taille; i >= 0; i--)
-	{
-		glVertex3f(taille*maMap.getDilatation(), maMap.getHeightMap(taille, i)->getHeight()*(1 + (maMap.getDilatation() - 1) / 3), i*maMap.getDilatation());
-		glVertex3f(taille*maMap.getDilatation(), maMap.getPosOcean()						, i*maMap.getDilatation());
-	}
-	//en haut
-	for (int i = taille; i >= 0; i--)
-	{
-		glVertex3f(i*maMap.getDilatation(), maMap.getHeightMap(i, 0)->getHeight()*(1 + (maMap.getDilatation() - 1) / 3), 0);
-		glVertex3f(i*maMap.getDilatation()	, maMap.getPosOcean()							, 0);
-	}
-	glEnd();
-
-
+	dessinCacheMisere(); //Cache le dessous de la map
+	
 	//*************
 	// DESSIN OCEAN
 	//*************
-	/*glBindTexture(GL_TEXTURE_2D, water.getTexture());
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);*/
-	glBegin(GL_QUADS);
-	glColor3f(0, 0, 0.75);
-	glTexCoord2f(0, 0);
-	glVertex3f(0, maMap.getPosOcean(), 0);
-	glTexCoord2f(1, 0);
-	glVertex3f(taille*maMap.getDilatation(), maMap.getPosOcean(), 0);
-	glTexCoord2f(1, 1);
-	glVertex3f(taille*maMap.getDilatation(), maMap.getPosOcean(), taille*maMap.getDilatation());
-	glTexCoord2f(0, 1);
-	glVertex3f(0, maMap.getPosOcean(), taille*maMap.getDilatation());
-	glEnd();
+	dessinOcean();
 
 
 	// Affichage ecran
@@ -188,8 +127,83 @@ GLvoid affichage(){
 
 
 	FPS = static_cast<int>(1000 / static_cast<float>(chrono.getEllapsed_time()));
+}
 
 
+void compteurFPS()
+{
+	//Il faut mettre le text en projection orthographique
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0.0, windowW, 0.0, windowH);
+	//Affichage du texte
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	//Couleur du texte
+	if (FPS>55){ glColor3f(0.0f, 1.0f, 0.0f); }
+	if (FPS<56 && FPS>29){ glColor3f(1.0f, 0.5f, 0.0f); }
+	if (FPS<30){ glColor3f(1.0f, 0.0f, 0.0f); }
+
+	glRasterPos2i(10, windowH - 30);
+	string s = to_string(FPS) + " FPS";
+
+	void * font = GLUT_BITMAP_TIMES_ROMAN_24;
+	//void * font = GLUT_BITMAP_HELVETICA_18; 
+	//void * font = GLUT_BITMAP_9_BY_15;
+	for (string::iterator i = s.begin(); i != s.end(); ++i)
+	{
+		char c = *i;
+		glutBitmapCharacter(font, c);
+	}
+}
+
+void dessinOcean()
+{
+	/*glBindTexture(GL_TEXTURE_2D, water.getTexture());
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);*/
+	glBegin(GL_QUADS);
+	glColor3f(0, 0, 0.75);
+	glTexCoord2f(0, 0);
+	glVertex3f(0, maMap.getPosOcean(), 0);
+	glTexCoord2f(1, 0);
+	glVertex3f(taille*maMap.getDilatation(), maMap.getPosOcean(), 0);
+	glTexCoord2f(1, 1);
+	glVertex3f(taille*maMap.getDilatation(), maMap.getPosOcean(), taille*maMap.getDilatation());
+	glTexCoord2f(0, 1);
+	glVertex3f(0, maMap.getPosOcean(), taille*maMap.getDilatation());
+	glEnd();
+}
+
+void dessinCacheMisere()
+{
+	glBegin(GL_TRIANGLE_STRIP);
+	glColor3f(0, 0, 0);
+	//on commence en (0,0)
+	//à droite
+	for (int i = 0; i <= taille; i++)
+	{
+		glVertex3f(0, maMap.getHeightMap(0, i)->getHeight()*(1 + (maMap.getDilatation() - 1) / 3), i*maMap.getDilatation());
+		glVertex3f(0, maMap.getPosOcean(), i*maMap.getDilatation());
+	}
+	//en bas
+	for (int i = 0; i <= taille; i++)
+	{
+		glVertex3f(i*maMap.getDilatation(), maMap.getHeightMap(i, taille)->getHeight()*(1 + (maMap.getDilatation() - 1) / 3), taille*maMap.getDilatation());
+		glVertex3f(i*maMap.getDilatation(), maMap.getPosOcean(), taille*maMap.getDilatation());
+	}
+	//à gauche
+	for (int i = taille; i >= 0; i--)
+	{
+		glVertex3f(taille*maMap.getDilatation(), maMap.getHeightMap(taille, i)->getHeight()*(1 + (maMap.getDilatation() - 1) / 3), i*maMap.getDilatation());
+		glVertex3f(taille*maMap.getDilatation(), maMap.getPosOcean(), i*maMap.getDilatation());
+	}
+	//en haut
+	for (int i = taille; i >= 0; i--)
+	{
+		glVertex3f(i*maMap.getDilatation(), maMap.getHeightMap(i, 0)->getHeight()*(1 + (maMap.getDilatation() - 1) / 3), 0);
+		glVertex3f(i*maMap.getDilatation(), maMap.getPosOcean(), 0);
+	}
+	glEnd();
 }
 
 // Definition de la fonction gerant les interruptions clavier

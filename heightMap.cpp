@@ -59,22 +59,15 @@ void heightMap::setHeightMap(int lig, int col, Point* point){
 void heightMap::setPosOcean(float _pos)
 {
 	posOcean = _pos;
-	FillDataBuffersPosColors();
+	FillDataBuffersColors();
 }
 
 void heightMap::setDilatation(float _dilatation)
 {
 	dilatation = _dilatation;
 
-	//On recale l'océan
-	float maxes[2];
-	giveMaxes(maxes);
-	posOcean = (maxes[0] - maxes[1])*0.3 + maxes[1];
-
 	//On rerempli les data
-	FillDataBuffersPosColors();
-
-	
+	FillDataBuffersPosColors();	
 }
 
 //METHODS
@@ -455,6 +448,47 @@ void heightMap::FillDataBuffersPosColors()
 
 	chrono.Toc();
 	cout << "Remplissage des donnees effectue en: " << static_cast<float>(chrono.getEllapsed_time()) / 1000 << "s." << endl;
+}
+
+void heightMap::FillDataBuffersColors()
+{
+	int taille = pow(2, length);
+
+	colors.clear();
+
+	//On recalcule les couleurs de chaque point
+	mapColor();
+
+	int j = 0;
+
+	// Remplissage strip par strip
+	for (int i = 0; i < taille; i = i + 2)
+	{
+
+		// Remplissage strip vers la droite
+		for (j = 0; j <= taille; j++)
+		{
+			// Les couleurs
+			colors.push_back(heightMatrix[i][j]->getR());
+			colors.push_back(heightMatrix[i][j]->getG());
+			colors.push_back(heightMatrix[i][j]->getB());
+			colors.push_back(heightMatrix[i + 1][j]->getR());
+			colors.push_back(heightMatrix[i + 1][j]->getG());
+			colors.push_back(heightMatrix[i + 1][j]->getB());
+		}
+		// Le dernier point de chaque strip est rentré deux fois dans le vecteur pour faire le virage
+		// Remplissage strip vers la gauche
+		for (j = taille; j >= 0; j--)
+		{
+			//Les couleurs
+			colors.push_back(heightMatrix[i + 1][j]->getR());
+			colors.push_back(heightMatrix[i + 1][j]->getG());
+			colors.push_back(heightMatrix[i + 1][j]->getB());
+			colors.push_back(heightMatrix[i + 2][j]->getR());
+			colors.push_back(heightMatrix[i + 2][j]->getG());
+			colors.push_back(heightMatrix[i + 2][j]->getB());
+		}
+	}
 }
 
 //CONSTRUCTORS

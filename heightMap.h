@@ -59,6 +59,7 @@ class heightMap
 		void seuilDefinition(float* seuil);
 		void ecrireFichierObj();
 		void FillDataBuffersPosColors();
+		void FillDataBuffersColors();
 
         //Constructors
         heightMap();
