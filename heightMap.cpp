@@ -70,6 +70,11 @@ void heightMap::setDilatation(float _dilatation)
 	FillDataBuffersPosColors();	
 }
 
+void heightMap::setIsDilated(bool _IsDilated)
+{
+	IsDilated = _IsDilated;
+}
+
 //METHODS
 void heightMap::initialisation(){
     float corner1,corner2,corner3,corner4; //Height of the corners
@@ -288,6 +293,13 @@ void heightMap::mapColor()
 	//On rempli la rampe de couleur quand on a toute les hauteurs
 	float maxes[2];
 	giveMaxes(maxes);
+	//On recale l'océan en cas de dilatation
+	if (IsDilated)
+	{ 
+		IsDilated = false;
+		posOcean = (maxes[0] - maxes[1])*0.3 + maxes[1];
+	}
+	
 	laRampe.Remplissage(maxes[0], posOcean);
 
 	int indice = 0;
@@ -498,6 +510,7 @@ heightMap::heightMap(){
      setMaxDepth(0.0);
      setMaxHeight(0.0);
 	 dilatation = 1.0f;
+	 IsDilated = false;
 
     for(int l=0;l<1024;l++) //By default the map's dimensions are 1024x1024
     {
@@ -512,13 +525,14 @@ heightMap::heightMap(){
 
 heightMap::heightMap(int taille){
 
-	if (taille > 11){ taille = 10; }
+	if (taille > 15){ taille = 15; }
 
 	setLength(taille);
 	setWidth(taille);
 	setMaxDepth(static_cast<float>(-pow(2, taille)));
 	setMaxHeight(static_cast<float>(pow(2,taille)));
 	dilatation = 1.0f;
+	IsDilated = false;
 
 	for (int l = 0; l<1 + pow(2, taille); l++)
 	{
@@ -542,6 +556,7 @@ heightMap::heightMap(int myLength, int myWidth, float myMaxDepth, float myMaxHei
      setMaxDepth(myMaxDepth);
      setMaxHeight(myMaxHeight);
 	 dilatation = 1.0f;
+	 IsDilated = false;
 
     for(int l=0;l<1+pow(2,myWidth);l++)
     {

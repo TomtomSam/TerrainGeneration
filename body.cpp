@@ -19,7 +19,7 @@
 #include "Chrono.h"
 
 // Initialisation de la carte
-heightMap maMap(8);
+heightMap maMap(11);
 
 // Creation des textures
 //Texture water;
@@ -56,6 +56,8 @@ GLvoid dilaterMap(int bouton, int dir, int x, int y);
 void compteurFPS();
 void dessinOcean();
 void dessinCacheMisere();
+
+int p = 0;
 
 // Definition de la fonction d'affichage
 GLvoid affichage(){
@@ -99,8 +101,7 @@ GLvoid affichage(){
 	//*****************
 	/*glBindTexture(GL_TEXTURE_2D, water.getTexture());
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);*/
-	monVBO.BuildAndDrawBuffer();
-	
+	monVBO.DrawBuffer();
 	//****************
 	// LE CACHE MISERE
 	//****************
@@ -115,6 +116,9 @@ GLvoid affichage(){
 	// Affichage ecran
 	glFlush();
 	glutSwapBuffers();
+		
+	
+	
 
 	// Compteur FPS
 	chrono.Toc();
@@ -141,8 +145,8 @@ void compteurFPS()
 	glLoadIdentity();
 	//Couleur du texte
 	if (FPS>55){ glColor3f(0.0f, 1.0f, 0.0f); }
-	if (FPS<56 && FPS>29){ glColor3f(1.0f, 0.5f, 0.0f); }
-	if (FPS<30){ glColor3f(1.0f, 0.0f, 0.0f); }
+	else if (FPS<56 && FPS>29){ glColor3f(1.0f, 0.5f, 0.0f); }
+	else if (FPS<30){ glColor3f(1.0f, 0.0f, 0.0f); }
 
 	glRasterPos2i(10, windowH - 30);
 	string s = to_string(FPS) + " FPS";
@@ -241,16 +245,19 @@ GLvoid clavier(unsigned char touche, int x, int y) {
 		break;
 	case '+': //changer le seuil de l'océan
 		maMap.setPosOcean(maMap.getPosOcean()+1);
-		monVBO.FeedData(maMap.getPos(), maMap.getCol(), maMap.getTex());
+		monVBO.FeedCol( maMap.getCol());
+		monVBO.ActualizeColBuffer();
 		break;
 	case '-':
 		maMap.setPosOcean(maMap.getPosOcean() - 1);
-		monVBO.FeedData(maMap.getPos(), maMap.getCol(), maMap.getTex());
+		monVBO.FeedCol(maMap.getCol());
+		monVBO.ActualizeColBuffer();
 		break;
 	case 'w':
 		maMap.ecrireFichierObj();
 		break;
 	case 27:
+		monVBO.DestroyVBO();
 		exit(0);
 		break;
 	}
@@ -370,16 +377,23 @@ GLvoid redimensionner(int w, int h) {
 
 GLvoid dilaterMap(int bouton, int dir, int x, int y)
 {
+	//La map est dilatée donc il va falloir actualiser la pos de l'océan
+	maMap.setIsDilated(true);
 	if (dir > 0)
 	{
-		maMap.setDilatation(maMap.getDilatation() + 0.1);
-		monVBO.FeedData(maMap.getPos(), maMap.getCol(), maMap.getTex());
+		maMap.setDilatation(maMap.getDilatation() + 0.1);	
 	}
 	else if (maMap.getDilatation()>1.0f)
 	{
 		maMap.setDilatation(maMap.getDilatation() - 0.1);
-		monVBO.FeedData(maMap.getPos(), maMap.getCol(), maMap.getTex());
 	}
+
+	//On actualise le VBO
+	monVBO.FeedCol(maMap.getCol());
+	monVBO.FeedPos(maMap.getPos());
+	monVBO.ActualizeColBuffer();
+	monVBO.ActualizePosBuffer();
+	
 	// Reaffichage de la scene
 	glutPostRedisplay();
 }
@@ -420,16 +434,14 @@ int main (int argc, char *argv[])
 	maMap.initialisationAuto();
 	//On génère la heightMap
 	maMap.generateMatrix();
-
-	//Min et Max des altitudes de la carte
-	float maxMin[2];
-	maMap.giveMaxes(maxMin);
-	cout << "Max: " << maxMin[0] << " Min: " << maxMin[1] << endl;
-	cout << maxMin[0] - maxMin[1] << endl;
-
-	//On rempli les données à envoyer au GPU
+	//On rempli les vecteurs de Data à envoyer au GPU
 	maMap.FillDataBuffersPosColors();
-	monVBO.FeedData(maMap.getPos(), maMap.getCol(), maMap.getTex());
+
+	//On rempli le VBO
+	monVBO.FeedCol(maMap.getCol());
+	monVBO.FeedPos(maMap.getPos());
+	monVBO.FeedTex(maMap.getTex());
+	monVBO.BuildBuffer();
 
 	// Définition des fonctions de callbacks
 	glutDisplayFunc(affichage);
