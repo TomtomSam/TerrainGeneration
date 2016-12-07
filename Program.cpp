@@ -1,9 +1,7 @@
 #include "Program.h"
 
-
 Program::Program(void)
 {
-	uiProgram = glCreateProgram();
 }
 
 
@@ -11,10 +9,21 @@ Program::~Program(void)
 {
 }
 
-bool Program::addShaderToProgram(Shader* shader){return true;}
+void Program::addShaderToProgram(Shader* shader){
+	glAttachShader(programID, shader->getShaderID());
+}
 
-bool Program::linkProgram(){return true;}
+void Program::linkProgram(Shader* shader1, Shader* shader2){
+	createProgram();
+	addShaderToProgram(shader1);
+	addShaderToProgram(shader2);
+	glLinkProgram(programID);
+}
 
-void Program::useProgram(){}
+void Program::useProgram(){glUseProgram(programID);}
 
-GLuint Program::getProgramID(){return 1;}
+GLuint Program::getProgramID(){return programID;}
+
+void Program::createProgram(){programID = glCreateProgram();}
+void Program::deleteProgram(){glDeleteProgram(programID);}
+

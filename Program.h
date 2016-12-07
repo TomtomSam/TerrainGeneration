@@ -8,13 +8,18 @@ public:
 	Program(void);
 	~Program(void);
 
-   bool addShaderToProgram(Shader* shader);
-   bool linkProgram();
-   void useProgram();
-   GLuint getProgramID();
+	void addShaderToProgram(Shader* shader);
+	void linkProgram(Shader* shader1, Shader* shader2);
+	void useProgram();
+	GLuint getProgramID();
+	void createProgram();
+	void deleteProgram();
+
+
 
 private:
-   GLuint uiProgram; // ID of program
+	GLuint programID; // ID of program
 };
 
 #endif //PROGRAM_H
+

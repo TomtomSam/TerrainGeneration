@@ -1,15 +1,12 @@
 #include "ColorRamp.h"
 
-/*
-La rampe de couleur est créée après la génération de la matrice
+/*La rampe de couleur est créée après la génération de la matrice
 des hauteurs et prend en entrée la différence entre la hauteur max et min
-de la map afin de faire correspondre une couleur à une altitude.
-*/
-
-
+de la map afin de faire correspondre une couleur à une altitude.*/
 
 void ColorRamp::Remplissage(float HauteurMax, float posOcean)
-{//Limites RGB des biomes
+{
+//Limites RGB des biomes
 //10% 45% 70% 90%
 //Plage Jaune
 	float PLAGE_R =228;
@@ -111,5 +108,4 @@ vector<float>& operator+=(vector<float>& v1, vector<float>& v2){
 	}
 
 	return v1;
-
 }
