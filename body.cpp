@@ -401,7 +401,7 @@ GLvoid dilaterMap(int bouton, int dir, int x, int y)
 	{
 		maMap.setDilatation(maMap.getDilatation() + 0.1);	
 	}
-	else if (maMap.getDilatation()>1.0f)
+	else
 	{
 		maMap.setDilatation(maMap.getDilatation() - 0.1);
 	}
