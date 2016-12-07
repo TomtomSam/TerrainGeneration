@@ -20,6 +20,8 @@ class heightMap
         float maxDepth;
         float maxHeight;
 		float posOcean;
+		float dilatation; //Permet de dilater la map avec la molette de la souris
+		bool IsDilated;
         vector< vector<Point*> > heightMatrix;
 
 		//Data pour le VBO
@@ -37,6 +39,7 @@ class heightMap
         float getMaxDepth();
         float getMaxHeight();
 		float getPosOcean();
+		float getDilatation();
         Point* getHeightMap(int lig, int col);
 		vector<float> getPos();
 		vector<float> getCol();
@@ -49,6 +52,8 @@ class heightMap
         void setMaxHeight(float myMaxHeight);
         void setHeightMap(int lig, int col, Point* point);
 		void setPosOcean(float _pos);
+		void setDilatation(float _dilatation);
+		void setIsDilated(bool _IsDilated);
 
         //Methods
         void initialisation();
@@ -62,6 +67,7 @@ class heightMap
 		void seuilDefinition(float* seuil);
 		void ecrireFichierObj();
 		void FillDataBuffersPosColors();
+		void FillDataBuffersColors();
 
         //Constructors
         heightMap();

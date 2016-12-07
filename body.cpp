@@ -2,12 +2,11 @@
 /************************ FRACTAL LANDSCAPES GENERATION ***********************/
 /********************* by Bastien TOUBHANS & Thomas SAMUEL ********************/
 /**************************** created on 06/10/2016 ***************************/
-/**************************** updated on 30/11/2016 ***************************/
+/**************************** updated on 06/12/2016 ***************************/
 /******************************************************************************/
 
 // Choix du namespace
 using namespace std;
-
 
 // Include des libraires
 #include <Windows.h>
@@ -18,14 +17,15 @@ using namespace std;
 #include "VBO.h"
 #include "Texture.h"
 #include "Program.h"
-#include <iostream>
 
 // Initialisation de la carte
-heightMap maMap(7);
+heightMap maMap(5);
 
 // Creation des textures
 Texture water;
 Texture grass;
+Texture ice;
+Texture sand;
 
 // Creation du chrono
 Chrono chrono;
@@ -34,7 +34,7 @@ Chrono chrono;
 VBO monVBO;
 
 // Initialisation du nombre de points par ligne/colonne
-int taille = pow(2, maMap.getLength());
+int taille = static_cast<int>(pow(2, maMap.getLength()));
 
 //Initialisation camera: (MoveSensitivity,CampPos,TargetPos)
 FreeFlyCamera cam(static_cast<float>(taille)/100, 0.5*taille, taille, -0.5*taille, 0, -0.5*taille, 0.75*taille);
@@ -43,8 +43,10 @@ FreeFlyCamera cam(static_cast<float>(taille)/100, 0.5*taille, taille, -0.5*taill
 int windowW = 1000;
 int windowH = 550;
 float focale = 70.0f;
-float Near = 0.1f;
+float Near = 0.5f;
 float Far = (float)taille*2;
+int FPS = 0;
+int p = 0;
 
 // Déclarations des fonctions de rappel (callbacks)
 GLvoid affichage();
@@ -53,7 +55,9 @@ GLvoid souris(int bouton, int etat, int x, int y);
 GLvoid deplacementSouris(int x, int y);
 GLvoid redimensionner(int w, int h);
 
-
+void compteurFPS();
+void dessinOcean();
+void dessinCacheMisere();
 
 // Definition de la fonction d'affichage
 GLvoid affichage(){
@@ -66,6 +70,23 @@ GLvoid affichage(){
 	// Effacement du frame buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	//***************
+	//COMPTEUR DE FPS
+	//***************
+	compteurFPS();//Affiche les FPS 
+
+	//ON REPASSE EN MODE PERSPECTIVE POUR LA MAP
+	// Projection
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	// Viewport
+	glViewport(0, 0, windowW, windowH);
+
+	// Mise en place de la perspective
+	Far = (float)taille * 2 * maMap.getDilatation();
+	gluPerspective(focale, 1.0, Near, Far);
+
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
@@ -74,58 +95,21 @@ GLvoid affichage(){
 		cam.gettargetPos().getVx()	, cam.gettargetPos().getVy(), cam.gettargetPos().getVz(), 
 		cam.getupWorld().getVx()	, cam.getupWorld().getVy()	, cam.getupWorld().getVz()	);
 
+	//*****************
 	// DESSIN DE LA MAP
-	glBindTexture(GL_TEXTURE_2D, grass.getTexture());
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-	monVBO.BuildAndDrawBuffer();
+	//*****************
+	/*glBindTexture(GL_TEXTURE_2D, water.getTexture());
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);*/
+	monVBO.DrawBuffer();
+	//****************
+	// LE CACHE MISERE
+	//****************
+	dessinCacheMisere(); //Cache le dessous de la map
 
-
-	//Le cache Misère sur les cotés de la map
-	// TODO:Mettre ça dans un VBO
-	glBegin(GL_TRIANGLE_STRIP);
-	glColor3f(0, 0, 0);
-	//on commence en (0,0)
-	//à droite
-	for (int i = 0; i <= taille; i++)
-	{
-		glVertex3f(0, maMap.getHeightMap(0, i)->getHeight(), i);
-		glVertex3f(0, maMap.getPosOcean(), i);
-	}
-	//en bas
-	for (int i = 0; i <= taille; i++)
-	{
-		glVertex3f(i, maMap.getHeightMap(i, taille)->getHeight(), taille);
-		glVertex3f(i, maMap.getPosOcean(), taille);
-	}
-	//à gauche
-	for (int i = taille; i >= 0; i--)
-	{
-		glVertex3f(taille, maMap.getHeightMap(taille, i)->getHeight(), i);
-		glVertex3f(taille, maMap.getPosOcean(), i);
-	}
-	//en haut
-	for (int i = taille; i >= 0; i--)
-	{
-		glVertex3f(i, maMap.getHeightMap(i, 0)->getHeight(), 0);
-		glVertex3f(i, maMap.getPosOcean(), 0);
-	}
-	glEnd();
-
-
-	// Dessin de l'ocean
-	glBindTexture(GL_TEXTURE_2D, water.getTexture());
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-	glBegin(GL_QUADS);
-	glColor3f(0, 0, 0.75);
-	glTexCoord2f(0, 0);
-	glVertex3f(0, maMap.getPosOcean(), 0);
-	glTexCoord2f(1, 0);
-	glVertex3f(taille, maMap.getPosOcean(), 0);
-	glTexCoord2f(1, 1);
-	glVertex3f(taille, maMap.getPosOcean(), taille);
-	glTexCoord2f(0, 1);
-	glVertex3f(0, maMap.getPosOcean(), taille);
-	glEnd();
+	//*************
+	// DESSIN OCEAN
+	//*************
+	dessinOcean();
 
 	// Affichage ecran
 	glFlush();
@@ -140,8 +124,101 @@ GLvoid affichage(){
 		chrono.Toc();
 	}
 
-	cout << "FPS: " << static_cast<int>(1000 / static_cast<float>(chrono.getEllapsed_time())) << endl;
+	FPS = static_cast<int>(1000 / static_cast<float>(chrono.getEllapsed_time()));
+}
 
+
+void compteurFPS()
+{
+	//Il faut mettre le text en projection orthographique
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0.0, windowW, 0.0, windowH);
+	//Affichage du texte
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	//Couleur du texte
+	if (FPS>55){ glColor3f(0.0f, 1.0f, 0.0f); }
+	else if (FPS<56 && FPS>29){ glColor3f(1.0f, 0.5f, 0.0f); }
+	else if (FPS<30){ glColor3f(1.0f, 0.0f, 0.0f); }
+
+	glRasterPos2i(10, windowH - 30);
+	string s = to_string(FPS) + " FPS";
+
+	void * font = GLUT_BITMAP_TIMES_ROMAN_24;
+	//void * font = GLUT_BITMAP_HELVETICA_18; 
+	//void * font = GLUT_BITMAP_9_BY_15;
+	for (string::iterator i = s.begin(); i != s.end(); ++i)
+	{
+		char c = *i;
+		glutBitmapCharacter(font, c);
+	}
+}
+
+
+void dessinOcean()
+{
+	glBindTexture(GL_TEXTURE_2D, water.getTexture());
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+	glBegin(GL_QUADS);
+	glColor3f(0, 0, 0.75);
+	glMultiTexCoord2f(GL_TEXTURE0 + water.getTexture(),0,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + grass.getTexture(),0,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + ice.getTexture(),0,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + sand.getTexture(),0,0);
+	//glTexCoord2f(0, 0);
+	glVertex3f(0, maMap.getPosOcean(), 0);
+	glMultiTexCoord2f(GL_TEXTURE0 + water.getTexture(),1,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + grass.getTexture(),1,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + ice.getTexture(),1,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + sand.getTexture(),1,0);
+	//glTexCoord2f(1, 0);
+	glVertex3f(taille, maMap.getPosOcean(), 0);
+	glMultiTexCoord2f(GL_TEXTURE0 + water.getTexture(),1,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + grass.getTexture(),1,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + ice.getTexture(),1,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + sand.getTexture(),1,1);
+	//glTexCoord2f(1, 1);
+	glVertex3f(taille, maMap.getPosOcean(), taille);
+	glMultiTexCoord2f(GL_TEXTURE0 + water.getTexture(),0,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + grass.getTexture(),0,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + ice.getTexture(),0,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + sand.getTexture(),0,1);
+	//glTexCoord2f(0, 1);
+	glVertex3f(0, maMap.getPosOcean(), taille);
+	glEnd();
+}
+
+void dessinCacheMisere()
+{
+	glBegin(GL_TRIANGLE_STRIP);
+	glColor3f(0, 0, 0);
+	//on commence en (0,0)
+	//à droite
+	for (int i = 0; i <= taille; i++)
+	{
+		glVertex3f(0, maMap.getHeightMap(0, i)->getHeight()*(1 + (maMap.getDilatation() - 1) / 3), i*maMap.getDilatation());
+		glVertex3f(0, maMap.getPosOcean(), i*maMap.getDilatation());
+	}
+	//en bas
+	for (int i = 0; i <= taille; i++)
+	{
+		glVertex3f(i*maMap.getDilatation(), maMap.getHeightMap(i, taille)->getHeight()*(1 + (maMap.getDilatation() - 1) / 3), taille*maMap.getDilatation());
+		glVertex3f(i*maMap.getDilatation(), maMap.getPosOcean(), taille*maMap.getDilatation());
+	}
+	//à gauche
+	for (int i = taille; i >= 0; i--)
+	{
+		glVertex3f(taille*maMap.getDilatation(), maMap.getHeightMap(taille, i)->getHeight()*(1 + (maMap.getDilatation() - 1) / 3), i*maMap.getDilatation());
+		glVertex3f(taille*maMap.getDilatation(), maMap.getPosOcean(), i*maMap.getDilatation());
+	}
+	//en haut
+	for (int i = taille; i >= 0; i--)
+	{
+		glVertex3f(i*maMap.getDilatation(), maMap.getHeightMap(i, 0)->getHeight()*(1 + (maMap.getDilatation() - 1) / 3), 0);
+		glVertex3f(i*maMap.getDilatation(), maMap.getPosOcean(), 0);
+	}
+	glEnd();
 }
 
 // Definition de la fonction gerant les interruptions clavier
@@ -184,19 +261,22 @@ GLvoid clavier(unsigned char touche, int x, int y) {
 		case 'y': // shader deactivate
 		case 'Y':
 		glUseProgram(0);
-		break; */
+		break;*/ 
 	case '+': //changer le seuil de l'océan
 		maMap.setPosOcean(maMap.getPosOcean()+1);
-		monVBO.FeedData(maMap.getPos(), maMap.getCol(), maMap.getTex());
+		monVBO.FeedCol( maMap.getCol());
+		monVBO.ActualizeColBuffer();
 		break;
 	case '-':
-		maMap.setPosOcean(maMap.getPosOcean()-1);
-		monVBO.FeedData(maMap.getPos(), maMap.getCol(), maMap.getTex());
+		maMap.setPosOcean(maMap.getPosOcean() - 1);
+		monVBO.FeedCol(maMap.getCol());
+		monVBO.ActualizeColBuffer();
 		break;
 	case 'w':
 		maMap.ecrireFichierObj();
 		break;
 	case 27:
+		monVBO.DestroyVBO();
 		exit(0);
 		break;
 	}
@@ -313,6 +393,29 @@ GLvoid redimensionner(int w, int h) {
 	glMatrixMode(GL_MODELVIEW);
 }
 
+GLvoid dilaterMap(int bouton, int dir, int x, int y)
+{
+	//La map est dilatée donc il va falloir actualiser la pos de l'océan
+	maMap.setIsDilated(true);
+	if (dir > 0)
+	{
+		maMap.setDilatation(maMap.getDilatation() + 0.1);	
+	}
+	else if (maMap.getDilatation()>1.0f)
+	{
+		maMap.setDilatation(maMap.getDilatation() - 0.1);
+	}
+
+	//On actualise le VBO
+	monVBO.FeedCol(maMap.getCol());
+	monVBO.FeedPos(maMap.getPos());
+	monVBO.ActualizeColBuffer();
+	monVBO.ActualizePosBuffer();
+	
+	// Reaffichage de la scene
+	glutPostRedisplay();
+}
+
 int main (int argc, char *argv[])
 {
 	srand(time(NULL));
@@ -334,22 +437,20 @@ int main (int argc, char *argv[])
 	//Activation Z-buffer
 	glEnable(GL_DEPTH_TEST);
 
-	// Creation des shaders
-	Shader VS,FS; 
-	Program prog;
-	VS.loadShader("vertexShader.vert", GL_VERTEX_SHADER);
-	FS.loadShader("fragmentShader.frag", GL_FRAGMENT_SHADER);
-	prog.createProgram();
-	prog.addShaderToProgram(&VS);
-	prog.addShaderToProgram(&FS);
-	prog.linkProgram(&VS, &FS);
-	prog.useProgram();
-
 	// At initialization
 	glEnable(GL_TEXTURE_2D);
+
 	//Load/Bind Textures
 	water.loadTexture("WATER.jpg");
+	sand.loadTexture("SAND.jpg");
+	ice.loadTexture("ICE.jpg");
 	grass.loadTexture("GRASS.jpg");
+
+	/*	water.loadTexture("WATER.jpg");
+	ice.loadTexture("ICE.jpg");
+	sand.loadTexture("SAND.jpg");
+	grass.loadTexture("GRASS.jpg");*/
+
 	// Blending
 	//glEnable(GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -359,16 +460,15 @@ int main (int argc, char *argv[])
 	maMap.initialisationAuto();
 	//On génère la heightMap
 	maMap.generateMatrix();
-
-	//Min et Max des altitudes de la carte
-	float maxMin[2];
-	maMap.giveMaxes(maxMin);
-	cout << "Max: " << maxMin[0] << " Min: " << maxMin[1] << endl;
-	cout << maxMin[0] - maxMin[1] << endl;
-
-	//On rempli les données à envoyer au GPU
+	//On rempli les vecteurs de Data à envoyer au GPU
 	maMap.FillDataBuffersPosColors();
-	monVBO.FeedData(maMap.getPos(), maMap.getCol(), maMap.getTex());
+
+	//On rempli le VBO
+	monVBO.FeedCol(maMap.getCol());
+	monVBO.FeedPos(maMap.getPos());
+	monVBO.FeedTex(maMap.getTex());
+	monVBO.BuildBuffer();
+
 
 	// Définition des fonctions de callbacks
 	glutDisplayFunc(affichage);
@@ -381,9 +481,63 @@ int main (int argc, char *argv[])
 	glutMotionFunc(deplacementSouris);
 	glutReshapeFunc(redimensionner);
 
+	//Min et Max des altitudes de la carte
+	float maxMin[2];
+	maMap.giveMaxes(maxMin);
+
+	// Creation des shaders et du program associe
+	Shader VS,FS; 
+	Program prog;
+	VS.loadShader("vertexShader.vert", GL_VERTEX_SHADER);
+	FS.loadShader("fragmentShader.frag", GL_FRAGMENT_SHADER);
+	prog.createProgram();
+	prog.addShaderToProgram(&VS);
+	prog.addShaderToProgram(&FS);
+	prog.linkProgram(&VS, &FS);
+	prog.useProgram();
+
+	//Assignation des variables des shaders
+	GLint w, g, i, s, texture, texture1, texture2, texture3;
+	GLfloat max, min, beach, snow, ocean;
+
+	max = glGetUniformLocation(prog.getProgramID(), "maxHeight");
+	glUniform1f(max, maxMin[0]);
+	min = glGetUniformLocation(prog.getProgramID(), "minHeight");
+	glUniform1f(min, maxMin[1]);
+	beach = glGetUniformLocation(prog.getProgramID(), "beachTransition");
+	glUniform1f(beach, (maxMin[0]-maxMin[1])*0.6);
+	snow = glGetUniformLocation(prog.getProgramID(), "snowTransition");
+	glUniform1f(snow, (maxMin[0]-maxMin[1])*0.9);
+	ocean = glGetUniformLocation(prog.getProgramID(), "oceanTransition");
+	glUniform1f(snow, (maxMin[0]-maxMin[1])*0.3);
+	w = glGetUniformLocation(prog.getProgramID(), "waterID");
+	glUniform1i(w, water.getTexture());
+	g = glGetUniformLocation(prog.getProgramID(), "grassID");
+	glUniform1i(g, grass.getTexture());
+	i = glGetUniformLocation(prog.getProgramID(), "iceID");
+	glUniform1i(i, ice.getTexture());
+	s = glGetUniformLocation(prog.getProgramID(), "sandID");
+	glUniform1i(s, sand.getTexture());
+
+	glActiveTexture(GL_TEXTURE0 + water.getTexture());
+	glBindTexture(GL_TEXTURE_2D, water.getTexture());
+	texture = glGetUniformLocation(prog.getProgramID(), "tex_water");
+	glUniform1i(texture, 0);
+	glActiveTexture(GL_TEXTURE0 + grass.getTexture());
+	glBindTexture(GL_TEXTURE_2D, grass.getTexture());
+	texture1 = glGetUniformLocation(prog.getProgramID(), "tex_grass");
+	glUniform1i(texture1, 1);
+	glActiveTexture(GL_TEXTURE0 + ice.getTexture());
+	glBindTexture(GL_TEXTURE_2D, ice.getTexture()); 
+	texture2 = glGetUniformLocation(prog.getProgramID(), "tex_ice");
+	glUniform1i(texture2, 2);
+	glActiveTexture(GL_TEXTURE0 + sand.getTexture());
+	glBindTexture(GL_TEXTURE_2D, sand.getTexture()); 
+	texture3 = glGetUniformLocation(prog.getProgramID(), "tex_sand");
+	glUniform1i(texture3, 3);
+
 	// Lancement de la boucle infinie GLUT
 	glutMainLoop();
-
 
 	return 0;
 }
