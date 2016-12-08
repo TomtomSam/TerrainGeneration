@@ -44,9 +44,20 @@ private:
 	float moveSensitivity;
 	float mouseRotSensitivity;
 
+	// Near and Far Plane
+	float close;
+	float distant;
+
+	// Focale
+	float focale;
+
 public:
 	void setMoveSensitivity(float MoveSensitivity);
 	void setMouseSensitivity(float MouseSensitivity);
+	void setFar(float _far);
+	float getFar();
+	float getNear();
+	float getFocale();
 
 	Vector3D getcamPos();
 	Vector3D gettargetPos();

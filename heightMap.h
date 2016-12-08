@@ -72,6 +72,8 @@ class heightMap
 		void FillDataBuffersPosColors();
 		void FillDataBuffersColors();
 		void compteurFPS(int windowW, int windowH, int FPS);
+		void dessinOcean();
+		void dessinCacheMisere();
 
         //Constructors
         heightMap();

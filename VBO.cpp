@@ -139,6 +139,27 @@ void VBO::ActualizeColBuffer()
 	col_vbo = NULL;
 }
 
+void VBO::ActualizeTexBuffer()
+{
+	glBindBuffer(GL_ARRAY_BUFFER, bufferTex);
+	GLvoid *tex_vbo = NULL;
+
+	//On obtient la position mémoire de nos data
+	tex_vbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+
+	if (tex_vbo == NULL)
+	{
+		fprintf(stderr, "impossible d'acceder aux donnees du vbo!\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// On transfert les nouvelles data au bon endroit 
+	memcpy(tex_vbo, &tex[0], tex.size()*sizeof tex[0]);
+
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	tex_vbo = NULL;
+}
+
 void VBO::DestroyVBO()
 {
 	// Desactivation des tableaux de sommets

@@ -24,8 +24,15 @@ void heightMap::setIsDilated(bool _IsDilated){IsDilated = _IsDilated;}
 
 void heightMap::setPosOcean(float _pos)
 {
-	posOcean = _pos;
-	FillDataBuffersPosColors();
+	float maxes[2];
+	giveMaxes(maxes);
+	//Limitation de l'océan entre les bornes de la map
+	if (_pos<maxes[0]	&&	_pos>maxes[1])
+	{
+		posOcean = _pos;
+		FillDataBuffersColors();
+	}
+
 }
 
 void heightMap::setDilatation(float _dilatation)
@@ -484,6 +491,67 @@ void heightMap::compteurFPS(int windowW, int windowH, int FPS)
 		char c = *i;
 		glutBitmapCharacter(font, c);
 	}
+}
+
+void heightMap::dessinOcean()
+{
+	glBegin(GL_QUADS);
+	glColor3f(0, 0, 0.75);
+	int taille = pow(2, length);
+	/*glMultiTexCoord2f(GL_TEXTURE0 + water.getTexture(),0,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + grass.getTexture(),0,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + ice.getTexture(),0,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + sand.getTexture(),0,0);*/
+	glVertex3f(0, posOcean, 0);
+	/*glMultiTexCoord2f(GL_TEXTURE0 + water.getTexture(),1,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + grass.getTexture(),1,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + ice.getTexture(),1,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + sand.getTexture(),1,0);*/
+	glVertex3f(taille*dilatation, posOcean, 0);
+	/*glMultiTexCoord2f(GL_TEXTURE0 + water.getTexture(),1,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + grass.getTexture(),1,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + ice.getTexture(),1,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + sand.getTexture(),1,1);*/
+	glVertex3f(taille*dilatation, posOcean, taille*dilatation);
+	/*glMultiTexCoord2f(GL_TEXTURE0 + water.getTexture(),0,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + grass.getTexture(),0,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + ice.getTexture(),0,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + sand.getTexture(),0,1);*/
+	glVertex3f(0, posOcean, taille*dilatation);
+	glEnd();
+}
+
+void heightMap::dessinCacheMisere()
+{
+	int taille = pow(2, length);
+	glBegin(GL_TRIANGLE_STRIP);
+	glColor3f(0, 0, 0);
+	//on commence en (0,0)
+	//à droite
+	for (int i = 0; i <= taille; i++)
+	{
+		glVertex3f(0, getHeightMap(0, i)->getHeight(), i*dilatation);
+		glVertex3f(0, getPosOcean(), i*dilatation);
+	}
+	//en bas
+	for (int i = 0; i <= taille; i++)
+	{
+		glVertex3f(i*dilatation, getHeightMap(i, taille)->getHeight(), taille*dilatation);
+		glVertex3f(i*dilatation, posOcean, taille*dilatation);
+	}
+	//à gauche
+	for (int i = taille; i >= 0; i--)
+	{
+		glVertex3f(taille*dilatation, getHeightMap(taille, i)->getHeight(), i*dilatation);
+		glVertex3f(taille*dilatation, posOcean, i*dilatation);
+	}
+	//en haut
+	for (int i = taille; i >= 0; i--)
+	{
+		glVertex3f(i*dilatation, getHeightMap(i, 0)->getHeight(), 0);
+		glVertex3f(i*dilatation, posOcean, 0);
+	}
+	glEnd();
 }
 
 //CONSTRUCTORS
