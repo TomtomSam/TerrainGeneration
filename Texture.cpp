@@ -17,10 +17,10 @@ void Texture::loadTexture(char* filename){
 		SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_MULTIPLY_ALPHA
 		);
 	if(texture == NULL){
-		printf("[Texture loader] \"%s\" failed to load!\n", filename);
+		printf("Texture failed to load!\n");
 	}
 	else{
-		printf("Texture loaded :", filename);
+		printf("Texture loaded\n");
 	}
 }
 

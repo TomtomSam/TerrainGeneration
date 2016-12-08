@@ -1,9 +1,7 @@
 #include "Program.h"
 
-
 Program::Program(void)
 {
-	uiProgram = glCreateProgram();
 }
 
 
@@ -11,10 +9,30 @@ Program::~Program(void)
 {
 }
 
-bool Program::addShaderToProgram(Shader* shader){return true;}
+void Program::addShaderToProgram(Shader* shader){
+	glAttachShader(programID, shader->getShaderID());
+}
 
-bool Program::linkProgram(){return true;}
+void Program::linkProgram(Shader* shader1, Shader* shader2){
+	createProgram();
+	addShaderToProgram(shader1);
+	addShaderToProgram(shader2);
+	glLinkProgram(programID);
+}
 
-void Program::useProgram(){}
+void Program::setUniformi(const GLchar* name, GLint value){
+	GLint loc = glGetUniformLocation(programID, name);
+	glUniform1i(loc, value);
+}
 
-GLuint Program::getProgramID(){return 1;}
+void Program::setUniformf(const GLchar* name, GLfloat value){
+	GLint loc = glGetUniformLocation(programID, name);
+	glUniform1f(loc, value);
+}
+
+
+void Program::useProgram(){glUseProgram(programID);}
+GLuint Program::getProgramID(){return programID;}
+void Program::createProgram(){programID = glCreateProgram();}
+void Program::deleteProgram(){glDeleteProgram(programID);}
+

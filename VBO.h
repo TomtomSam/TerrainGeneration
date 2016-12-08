@@ -11,7 +11,9 @@ class VBO
 private:
 
 	//Le vbo
-	GLuint buffer;
+	GLuint bufferPos;
+	GLuint bufferCol;
+	GLuint bufferTex;
 
 	//Les vecteurs de data
 	vector<float> pos;
@@ -20,9 +22,17 @@ private:
 
 public:
 
-	void FeedData(vector<float> _pos, vector<float> _col, vector<float> _tex);
+	void FeedPos(vector<float> _pos); 
+	void FeedCol(vector<float> _col);
+	void FeedTex(vector<float> _tex);
 
-	void BuildAndDrawBuffer();
+	//void BuildAndDrawBuffer();
+	void BuildBuffer();
+	void DrawBuffer();
+	void ActualizePosBuffer();
+	void ActualizeColBuffer();
+	void ActualizeTexBuffer();
+	void DestroyVBO();
 
 
 	VBO();
