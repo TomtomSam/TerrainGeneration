@@ -361,10 +361,10 @@ void heightMap::FillDataBuffersPosColors()
 		{
 			// Les Positions 
 			pos.push_back(i*dilatation);
-			pos.push_back(heightMatrix[i][j]->getHeight()*(1+(dilatation-1)/3));
+			pos.push_back(heightMatrix[i][j]->getHeight());
 			pos.push_back(j*dilatation);
 			pos.push_back((i + 1)*dilatation);
-			pos.push_back(heightMatrix[i + 1][j]->getHeight()*(1 + (dilatation - 1) / 3));
+			pos.push_back(heightMatrix[i + 1][j]->getHeight());
 			pos.push_back(j*dilatation);
 
 			// Les couleurs
@@ -387,10 +387,10 @@ void heightMap::FillDataBuffersPosColors()
 		{
 			// Les Positions
 			pos.push_back((i + 1)*dilatation);
-			pos.push_back(heightMatrix[i + 1][j]->getHeight()*(1 + (dilatation - 1) / 3));
+			pos.push_back(heightMatrix[i + 1][j]->getHeight());
 			pos.push_back(j*dilatation);
 			pos.push_back((i + 2)*dilatation);
-			pos.push_back(heightMatrix[i + 2][j]->getHeight()*(1 + (dilatation - 1) / 3));
+			pos.push_back(heightMatrix[i + 2][j]->getHeight());
 			pos.push_back(j*dilatation);
 
 			//Les couleurs
@@ -451,6 +451,38 @@ void heightMap::FillDataBuffersColors()
 			colors.push_back(heightMatrix[i + 2][j]->getG());
 			colors.push_back(heightMatrix[i + 2][j]->getB());
 		}
+	}
+}
+
+
+void heightMap::compteurFPS(int windowW, int windowH, int FPS)
+{
+	//Il faut mettre le text en projection orthographique
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0.0, windowW, 0.0, windowH);
+
+	//Affichage du texte
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	//Couleur du texte
+	if (FPS>55){ glColor3f(0.0f, 1.0f, 0.0f); }
+	else if (FPS<56 && FPS>29){ glColor3f(1.0f, 0.5f, 0.0f); }
+	else if (FPS<30){ glColor3f(1.0f, 0.0f, 0.0f); }
+
+	//Positionnement du texte
+	glRasterPos2i(10, windowH - 30);
+	string s = to_string(FPS) + " FPS";
+
+	//Choix Police
+	void * font = GLUT_BITMAP_TIMES_ROMAN_24;
+
+	//Ecriture du texte
+	for (string::iterator i = s.begin(); i != s.end(); ++i)
+	{
+		char c = *i;
+		glutBitmapCharacter(font, c);
 	}
 }
 

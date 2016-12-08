@@ -1,7 +1,5 @@
 #include "VBO.h"
-
 using namespace std;
-
 
 void VBO::FeedPos(vector<float> _pos){ pos = _pos; }
 void VBO::FeedCol(vector<float> _col){ col = _col; }
@@ -82,21 +80,20 @@ void VBO::BuildBuffer()
 	if (tex.size() > 0)
 	{
 		glBufferSubData(GL_ARRAY_BUFFER,
-			0,	// Emplacement
+			0,							// Emplacement
 			tex.size()*sizeof pos[0],	// Taille
-			&tex[0]);							// Adresse
+			&tex[0]);					// Adresse
 
 		glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(0));
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
-
 }
+
 void VBO::DrawBuffer()
 {
 	// Dessin des strips
 	glBindBuffer(GL_ARRAY_BUFFER, bufferPos);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, pos.size() / 3);
-	
 }
 
 void VBO::ActualizePosBuffer()
@@ -108,22 +105,15 @@ void VBO::ActualizePosBuffer()
 	pos_vbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
 	if (pos_vbo == NULL)
-
 	{
-
 		fprintf(stderr, "impossible d'acceder aux donnees du vbo!\n");
-
 		exit(EXIT_FAILURE);
-
 	}
-
 
 	// On transfert les nouvelles data au bon endroit 
 	memcpy(pos_vbo, &pos[0], pos.size()*sizeof pos[0]);
 
-
 	glUnmapBuffer(GL_ARRAY_BUFFER);
-
 	pos_vbo = NULL;
 }
 
@@ -136,19 +126,13 @@ void VBO::ActualizeColBuffer()
 	col_vbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
 	if (col_vbo == NULL)
-
 	{
-
 		fprintf(stderr, "impossible d'acceder aux donnees du vbo!\n");
-
 		exit(EXIT_FAILURE);
-
 	}
-
 
 	// On transfert les nouvelles data au bon endroit 
 	memcpy(col_vbo, &col[0], col.size()*sizeof col[0]);
-
 
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 

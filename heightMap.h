@@ -7,6 +7,9 @@
 #include <ctime>
 #include <cmath>
 #include <fstream>
+#include <string>
+#include <GL/glew.h>
+#include <GL/glut.h>
 #include "Point.h"
 #include "ColorRamp.h"
 #include "Chrono.h"
@@ -68,6 +71,7 @@ class heightMap
 		void ecrireFichierObj();
 		void FillDataBuffersPosColors();
 		void FillDataBuffersColors();
+		void compteurFPS(int windowW, int windowH, int FPS);
 
         //Constructors
         heightMap();

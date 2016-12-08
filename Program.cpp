@@ -2,7 +2,6 @@
 
 Program::Program(void)
 {
-	programID = glCreateProgram();
 }
 
 
@@ -21,10 +20,19 @@ void Program::linkProgram(Shader* shader1, Shader* shader2){
 	glLinkProgram(programID);
 }
 
+void Program::setUniformi(const GLchar* name, GLint value){
+	GLint loc = glGetUniformLocation(programID, name);
+	glUniform1i(loc, value);
+}
+
+void Program::setUniformf(const GLchar* name, GLfloat value){
+	GLint loc = glGetUniformLocation(programID, name);
+	glUniform1f(loc, value);
+}
+
+
 void Program::useProgram(){glUseProgram(programID);}
-
 GLuint Program::getProgramID(){return programID;}
-
 void Program::createProgram(){programID = glCreateProgram();}
 void Program::deleteProgram(){glDeleteProgram(programID);}
 
