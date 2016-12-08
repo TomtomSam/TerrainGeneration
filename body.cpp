@@ -41,16 +41,10 @@ FreeFlyCamera camera(static_cast<float>(taille)/100, 0.5*taille, taille, -0.5*ta
 // Initliasitation des proprietes de la fenêtre
 int windowW = 1000;
 int windowH = 550;
-float focale = 70.0f;
-float Near = 0.5f;
-float Far = static_cast<float>(taille*2);
 int FPS = 0;
 
 // Déclarations des fonctions de rappel (callbacks)
 GLvoid affichage();
-	//GLvoid clavier(unsigned char touche, int x, int y);
-	//GLvoid souris(int bouton, int etat, int x, int y);
-	//GLvoid deplacementSouris(int x, int y);
 void dessinOcean();
 void dessinCacheMisere();
 
@@ -79,8 +73,8 @@ GLvoid affichage(){
 	glViewport(0, 0, windowW, windowH);
 
 	// Mise en place de la perspective
-	Far = (float)taille * 2 * maMap.getDilatation();
-	gluPerspective(focale, 1.0, Near, Far);
+	camera.setFar(taille * 2 * maMap.getDilatation());
+	gluPerspective(camera.getFocale(), 1.0, camera.getNear(), camera.getFar());
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -135,17 +129,17 @@ void dessinOcean()
 	glMultiTexCoord2f(GL_TEXTURE0 + grass.getTexture(),1,0);
 	glMultiTexCoord2f(GL_TEXTURE0 + ice.getTexture(),1,0);
 	glMultiTexCoord2f(GL_TEXTURE0 + sand.getTexture(),1,0);
-	glVertex3f(taille, maMap.getPosOcean(), 0);
+	glVertex3f(taille*maMap.getDilatation(), maMap.getPosOcean(), 0);
 	glMultiTexCoord2f(GL_TEXTURE0 + water.getTexture(),1,1);
 	glMultiTexCoord2f(GL_TEXTURE0 + grass.getTexture(),1,1);
 	glMultiTexCoord2f(GL_TEXTURE0 + ice.getTexture(),1,1);
 	glMultiTexCoord2f(GL_TEXTURE0 + sand.getTexture(),1,1);
-	glVertex3f(taille, maMap.getPosOcean(), taille);
+	glVertex3f(taille*maMap.getDilatation(), maMap.getPosOcean(), taille*maMap.getDilatation());
 	glMultiTexCoord2f(GL_TEXTURE0 + water.getTexture(),0,1);
 	glMultiTexCoord2f(GL_TEXTURE0 + grass.getTexture(),0,1);
 	glMultiTexCoord2f(GL_TEXTURE0 + ice.getTexture(),0,1);
 	glMultiTexCoord2f(GL_TEXTURE0 + sand.getTexture(),0,1);
-	glVertex3f(0, maMap.getPosOcean(), taille);
+	glVertex3f(0, maMap.getPosOcean(), taille*maMap.getDilatation());
 	glEnd();
 }
 
@@ -254,9 +248,12 @@ int main (int argc, char *argv[])
 	//Assignation des variables des shaders
 	prog.setUniformf("maxHeight", maxMin[0]);
 	prog.setUniformf("minHeight", maxMin[1]);
-	prog.setUniformf("beachTransition", (maxMin[0]-maxMin[1])*0.6);
-	prog.setUniformf("snowTransition", (maxMin[0]-maxMin[1])*0.9);
-	prog.setUniformf("oceanTransition", (maxMin[0]-maxMin[1])*0.3);
+	prog.setUniformf("grassInf", (maxMin[0]-maxMin[1])*0.6);
+	prog.setUniformf("grassSup", (maxMin[0]-maxMin[1])*0.9);
+	prog.setUniformf("beachInf", (maxMin[0]-maxMin[1])*0.4);
+	prog.setUniformf("beachSup", (maxMin[0]-maxMin[1])*0.7);
+	prog.setUniformf("snowInf", (maxMin[0]-maxMin[1])*0.8);
+	prog.setUniformf("waterSup", (maxMin[0]-maxMin[1])*0.5);
 
 	prog.setUniformi("waterID", water.getTexture());
 	prog.setUniformi("grassID", grass.getTexture());
@@ -266,19 +263,21 @@ int main (int argc, char *argv[])
 	glActiveTexture(GL_TEXTURE0 + water.getTexture());
 	glBindTexture(GL_TEXTURE_2D, water.getTexture());
 	texture = glGetUniformLocation(prog.getProgramID(), "tex_water");
-	glUniform1i(texture, 0);
-	glActiveTexture(GL_TEXTURE0 + grass.getTexture());
-	glBindTexture(GL_TEXTURE_2D, grass.getTexture());
-	texture1 = glGetUniformLocation(prog.getProgramID(), "tex_grass");
-	glUniform1i(texture1, 1);
-	glActiveTexture(GL_TEXTURE0 + ice.getTexture());
-	glBindTexture(GL_TEXTURE_2D, ice.getTexture()); 
-	texture2 = glGetUniformLocation(prog.getProgramID(), "tex_ice");
-	glUniform1i(texture2, 2);
+	glUniform1i(texture, 1);	
 	glActiveTexture(GL_TEXTURE0 + sand.getTexture());
 	glBindTexture(GL_TEXTURE_2D, sand.getTexture()); 
 	texture3 = glGetUniformLocation(prog.getProgramID(), "tex_sand");
-	glUniform1i(texture3, 3);
+	glUniform1i(texture3, 2);	
+	glActiveTexture(GL_TEXTURE0 + ice.getTexture());
+	glBindTexture(GL_TEXTURE_2D, ice.getTexture()); 
+	texture2 = glGetUniformLocation(prog.getProgramID(), "tex_ice");
+	glUniform1i(texture2, 3);
+	glActiveTexture(GL_TEXTURE0 + grass.getTexture());
+	glBindTexture(GL_TEXTURE_2D, grass.getTexture());
+	texture1 = glGetUniformLocation(prog.getProgramID(), "tex_grass");
+	glUniform1i(texture1, 4);
+
+
 
 	// Lancement de la boucle infinie GLUT
 	glutMainLoop();
