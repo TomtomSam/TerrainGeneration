@@ -1,7 +1,7 @@
 #ifndef CALLBACKHANDLER_H
 #define CALLBACKHANDLER_H
 
-#include <stdlib.h>
+#include <stdlib.h>//mis en premier pour que l'on puisse charger l'exit de glut et non celui de stdlib dans le .cpp
 #include <GL/glew.h>
 #include <GL/glut.h>
 #include <iostream>

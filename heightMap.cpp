@@ -376,10 +376,15 @@ void heightMap::FillDataBuffersPosColors()
 			colors.push_back(heightMatrix[i+1][j]->getB());
 
 			// Les textures
-			//tex.push_back(i*stride);
-			//tex.push_back(j*stride);
-			//tex.push_back((i+1)*stride);
-			//tex.push_back(j*stride);
+			int k;
+			for(k=0;k<4;k++){
+				tex.push_back(i*stride);
+				tex.push_back(j*stride);
+			}
+			for(k=0;k<4;k++){
+				tex.push_back((i+1)*stride);
+				tex.push_back(j*stride);
+			}
 		}
 		// Le dernier point de chaque strip est rentré deux fois dans le vecteur pour faire le virage
 		// Remplissage strip vers la gauche
@@ -402,10 +407,15 @@ void heightMap::FillDataBuffersPosColors()
 			colors.push_back(heightMatrix[i + 2][j]->getB());
 
 			// Les textures
-			//tex.push_back((i+1)*stride);
-			//tex.push_back(j*stride);
-			//tex.push_back((i + 2)*stride);
-			//tex.push_back(j*stride);
+			int k;
+			for(k=0;k<4;k++){
+				tex.push_back((i+1)*stride);
+				tex.push_back(j*stride);
+			}
+			for(k=0;k<4;k++){
+				tex.push_back((i+2)*stride);
+				tex.push_back(j*stride);
+			}
 		}
 	}
 
@@ -484,6 +494,67 @@ void heightMap::compteurFPS(int windowW, int windowH, int FPS)
 		char c = *i;
 		glutBitmapCharacter(font, c);
 	}
+}
+
+void heightMap::dessinOcean()
+{
+  int taille = static_cast<int>(pow(2, length));
+	glBegin(GL_QUADS);
+	glColor3f(0, 0, 0.75);
+	glMultiTexCoord2f(GL_TEXTURE0 + 1,0,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + 4,0,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + 3,0,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + 2,0,0);
+	glVertex3f(0, posOcean, 0);
+	glMultiTexCoord2f(GL_TEXTURE0 + 1,1,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + 4,1,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + 3,1,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + 2,1,0);
+	glVertex3f(taille*dilatation, posOcean, 0);
+	glMultiTexCoord2f(GL_TEXTURE0 + 1,1,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + 4,1,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + 3,1,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + 2,1,1);
+	glVertex3f(taille*dilatation, posOcean, taille*dilatation);
+	glMultiTexCoord2f(GL_TEXTURE0 + 1,0,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + 4,0,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + 3,0,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + 2,0,1);
+	glVertex3f(0, posOcean, taille*dilatation);
+	glEnd();
+}
+
+void heightMap::dessinCacheMisere()
+{
+  int taille = static_cast<int>(pow(2, length));
+	glBegin(GL_TRIANGLE_STRIP);
+	glColor3f(0, 0, 0);
+	//on commence en (0,0)
+	//à droite
+	for (int i = 0; i <= taille; i++)
+	{
+		glVertex3f(0, getHeightMap(0, i)->getHeight(), i*dilatation);
+		glVertex3f(0, posOcean, i*dilatation);
+	}
+	//en bas
+	for (int i = 0; i <= taille; i++)
+	{
+		glVertex3f(i*dilatation, getHeightMap(i, taille)->getHeight(), taille*dilatation);
+		glVertex3f(i*dilatation, posOcean, taille*dilatation);
+	}
+	//à gauche
+	for (int i = taille; i >= 0; i--)
+	{
+		glVertex3f(taille*dilatation, getHeightMap(taille, i)->getHeight(), i*dilatation);
+		glVertex3f(taille*dilatation, posOcean, i*dilatation);
+	}
+	//en haut
+	for (int i = taille; i >= 0; i--)
+	{
+		glVertex3f(i*dilatation, getHeightMap(i, 0)->getHeight(), 0);
+		glVertex3f(i*dilatation, posOcean, 0);
+	}
+	glEnd();
 }
 
 //CONSTRUCTORS

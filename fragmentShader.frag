@@ -38,7 +38,8 @@ void main()
 	float waterWeight, grassWeight, iceWeight, sandWeight;
 	
 	waterWeight = contribution(height, minHeight, waterSup);
-	sandWeight = contribution(height, beachInf, beachSup);
+	if(waterWeight>0){sandWeight=0;}
+	else{sandWeight = contribution(height, beachInf, beachSup);}
 	grassWeight = contribution(height, grassInf, grassSup);
 	iceWeight = contribution(height, snowInf, maxHeight);
 	

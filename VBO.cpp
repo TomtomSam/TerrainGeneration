@@ -22,7 +22,7 @@ void VBO::BuildBuffer()
 	// On alloue l'espace necessaire en memoire
 	// Il y a 2^n strips à tracer et chaque strip contient 2*(2^n+1) sommets
 	glBufferData(GL_ARRAY_BUFFER,                   // Cible 
-		pos.size() *sizeof pos[0],	// Taille des positions Taille des couleurs Taille des textures
+		pos.size() *sizeof pos[0],					// Taille des positions
 		NULL,
 		GL_STREAM_DRAW);							// Mode de dessin
 	//Remplissage du buffer avec les subData
@@ -30,9 +30,9 @@ void VBO::BuildBuffer()
 	{
 		// Specification des donnees
 		glBufferSubData(GL_ARRAY_BUFFER,
-			0,                            // emplacement des donnees dans le VBO
-			pos.size()*sizeof pos[0], // Taille des donnees
-			&pos[0]);
+			0,								// Emplacement des donnees dans le VBO
+			pos.size()*sizeof pos[0],		// Taille des donnees
+			&pos[0]);						//Adresse des donnes
 
 		glVertexPointer(P_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(0));
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -49,7 +49,7 @@ void VBO::BuildBuffer()
 	// On alloue l'espace necessaire en memoire
 	// Il y a 2^n strips à tracer et chaque strip contient 2*(2^n+1) sommets
 	glBufferData(GL_ARRAY_BUFFER,                   // Cible 
-		 col.size()*sizeof col[0],	// Taille des positions Taille des couleurs Taille des textures
+		 col.size()*sizeof col[0],					// Taille des couleurs
 		NULL,
 		GL_STREAM_DRAW);							// Mode de dessin
 
@@ -73,7 +73,7 @@ void VBO::BuildBuffer()
 	// On alloue l'espace necessaire en memoire
 	// Il y a 2^n strips à tracer et chaque strip contient 2*(2^n+1) sommets
 	glBufferData(GL_ARRAY_BUFFER,                   // Cible 
-		tex.size()*sizeof col[0],	// Taille des positions Taille des couleurs Taille des textures
+		tex.size()*sizeof col[0],	//  Taille des textures
 		NULL,
 		GL_STREAM_DRAW);							// Mode de dessin
 
@@ -84,8 +84,23 @@ void VBO::BuildBuffer()
 			tex.size()*sizeof pos[0],	// Taille
 			&tex[0]);					// Adresse
 
-		glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(0));
+		glClientActiveTexture(GL_TEXTURE1);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(0));
+ 
+		glClientActiveTexture(GL_TEXTURE2);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(8));
+ 
+		glClientActiveTexture(GL_TEXTURE3);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(16));
+
+		glClientActiveTexture(GL_TEXTURE4);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(24));
+ 
+		glClientActiveTexture(GL_TEXTURE0);
 	}
 }
 
