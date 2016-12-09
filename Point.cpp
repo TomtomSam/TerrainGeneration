@@ -1,5 +1,6 @@
 #include "Point.h"
 
+// CONSTRUCTORS
 Point::Point()
 {
 	r = 1;
@@ -9,17 +10,15 @@ Point::Point()
 
 Point::Point(int _lig, int _col, float _height)
 {
-    //ctor
     lig = static_cast<float>(_lig);
     col = static_cast<float>(_col);
 	height = _height;
 }
 
-Point::~Point()
-{
-    //dtor
-}
+// DESTRUCTOR
+Point::~Point(){}
 
+// GETTERS
 float Point::getLig(){return lig;}
 float Point::getCol(){return col;}
 float Point::getHeight(){return height;}
@@ -29,6 +28,7 @@ float Point::getB(){return b;}
 float Point::getS(){return s;}
 float Point::getT(){return t;}
 
+// SETTERS
 void Point::setLig(float _lig){lig=_lig;}
 void Point::setCol(float _col){col=_col;}
 void Point::setHeight(float _height){height=_height;}

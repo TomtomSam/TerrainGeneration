@@ -10,11 +10,21 @@ uniform int sandID;
 
 uniform float maxHeight;
 uniform float minHeight;
-uniform float oceanTransition;
-uniform float beachTransition;
-uniform float snowTransition;
+uniform float grassInf;
+uniform float grassSup;
+uniform float beachInf;
+uniform float beachSup;
+uniform float snowInf;
+uniform float waterSup;
 
 varying float height;
+
+float contribution(float altitude, float borne_inf, float borne_sup)
+{
+	float result = 0;
+	if((altitude>=borne_inf) && (altitude<=borne_sup)){result=(altitude-borne_inf)/(borne_sup-borne_inf);}
+	return result;
+}
 
 void main()
 {
@@ -27,21 +37,15 @@ void main()
 	//Calculate Texture Weights
 	float waterWeight, grassWeight, iceWeight, sandWeight;
 	
-	if(height>oceanTransition){waterWeight=0;}
-	else{waterWeight=(height-minHeight)/(oceanTransition-minHeight);}
-	
-	if((height>beachTransition) ||(height<oceanTransition)){sandWeight=0;}
-	else{sandWeight=(height-minHeight)/(beachTransition-minHeight);}
-	
-	if((height>snowTransition) ||(height<beachTransition)){grassWeight=0;}
-	else{grassWeight=(height-minHeight)/(snowTransition-minHeight);}
-	
-	if(height<snowTransition){iceWeight=0;}
-	else{iceWeight=(height-minHeight)/(maxHeight-minHeight);}
+	waterWeight = contribution(height, minHeight, waterSup);
+	if(waterWeight>0){sandWeight=0;}
+	else{sandWeight = contribution(height, beachInf, beachSup);}
+	grassWeight = contribution(height, grassInf, grassSup);
+	iceWeight = contribution(height, snowInf, maxHeight);
 	
 	//Calculate Normalized Weights
 	float totalWeight = waterWeight + grassWeight + sandWeight + iceWeight ;
-	waterWeight= waterWeight /totalWeight;
+	waterWeight= waterWeight/totalWeight;
 	grassWeight = grassWeight/totalWeight;
 	iceWeight = iceWeight/totalWeight;
 	sandWeight = sandWeight/totalWeight;

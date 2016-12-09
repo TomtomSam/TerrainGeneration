@@ -1,11 +1,8 @@
-//
 //  vector3d.cpp
 //  testCamera
 //
 //  Created by Jean-Marie Normand on 29/09/2014.
 //  Copyright (c) 2014 Jean-Marie Normand. All rights reserved.
-//
-
 
 #include "vector3d.h"
 #include <cmath>

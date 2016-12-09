@@ -1,8 +1,7 @@
 #define _USE_MATH_DEFINES
 #include "FreeFlyCamera.h"
-#include <string>
-#include <cmath>
 
+// CONSTRUCTOR
 FreeFlyCamera::FreeFlyCamera(float _moveSensitivity, float camPosX, float camPosY, float camPosZ, float atPosX, float atPosY, float atPosZ)
 {
 
@@ -19,45 +18,42 @@ FreeFlyCamera::FreeFlyCamera(float _moveSensitivity, float camPosX, float camPos
 	close = 0.5f;
 	distant = 2048.f;
 
-
-	// on initialise la position de la camera
+	// Initialisation de  la position de la camera
 	camPos = Vector3D(camPosX,camPosY,camPosZ);
 
-	// on initialise les vecteurs 'view'
+	// Initialisation des vecteurs 'view'
 	forwardView = Vector3D(atPosX,atPosY,atPosZ);
 	upWorld = Vector3D(0, 1, 0);
 	rightView = upWorld.crossProduct(forwardView);
 
-	// Pour le FPS mode
-	forwardMove = forwardView;
-	rightMove = rightView;
-
-	// on initialise la cible a partir de la camera et du vecteur vision
+	// Initialisation de la cible a partir de la camera et du vecteur vision
 	targetPos = camPos + forwardView;
 
-	// angles de rotation (coordonnees spheriques) pour calculer le vecteur vision de la camera
+	// Initialisation des angles de rotation (coordonnees spheriques) pour calculer le vecteur vision de la camera
 	angleTheta = static_cast<float>(0.5*M_PI);
 	anglePhi = static_cast<float>(0.3*M_PI);
 }
 
-
+// DESTRUCTOR
 FreeFlyCamera::~FreeFlyCamera()
 {
 }
 
+// GETTERS
 Vector3D FreeFlyCamera::getcamPos(){return camPos;}
 Vector3D FreeFlyCamera::gettargetPos(){ return targetPos; }
 Vector3D FreeFlyCamera::getupWorld(){ return upWorld; }
 
+// SETTERS
 void FreeFlyCamera::setMoveSensitivity(float MoveSensitivity){ moveSensitivity = MoveSensitivity; }
 void FreeFlyCamera::setMouseSensitivity(float MouseSensitivity){ mouseRotSensitivity = MouseSensitivity; }
-
-
 void FreeFlyCamera::setFar(float _far){ distant = _far; }
 float FreeFlyCamera::getFar(){return distant;}
 float FreeFlyCamera::getNear(){return close;}
 float FreeFlyCamera::getFocale(){return focale;}
 
+// METHODS
+// Fonction d'incrementation du mouvement de la camera
 void FreeFlyCamera::incrementMouvement(string nom, char signe)
 {
 	if (nom == "deltaMove")
@@ -72,9 +68,13 @@ void FreeFlyCamera::incrementMouvement(string nom, char signe)
 	}
 }
 
+// Fonction de remise a zero de l'avance/recul de la camera
 void FreeFlyCamera::resetDeltaMove(){ deltaMove = 0.0f; }
+
+// Fonction de remise a zero du strafe de la camera
 void FreeFlyCamera::resetDeltaStrafe(){ deltaStrafe = 0.0f; }
 
+// Fonction de calcul des angles de rotation de la camera lorsque le clic gauche de la souris est enfonce
 void FreeFlyCamera::setBouttonUp()
 {
 	angleTheta += deltaTheta;
@@ -82,28 +82,29 @@ void FreeFlyCamera::setBouttonUp()
 	xOrigin = -1;
 	yOrigin = -1;
 }
+
+// Fonction de stockage des coordonnees de la souris au moment d'un clic gauche
 void FreeFlyCamera::setBouttonDown(int x, int y)
 {
 	xOrigin = x;
 	yOrigin = y;
 }
 
-
 // Fonction de gestion du deplacement de la camera
 void FreeFlyCamera::cameraMovement() 
 {
 
 	camPos = camPos + deltaStrafe*rightView + deltaMove*forwardView;
-	// Mettre a jour la cible
+	// Mise a jour de la cible
 	targetPos = camPos + forwardView;
 }
 
+// Fonction de mise a jour des reglages de la camera
 bool FreeFlyCamera::ActualiserCamera(int x, int y)
 {
 	if (xOrigin >= 0 || yOrigin >= 0) 
 	{
-
-		// mise a jour des deltas des angles theta et phi
+		// Mise a jour des deltas des angles theta et phi
 		deltaTheta = (x - xOrigin)*mouseRotSensitivity;
 		deltaPhi = -(y - yOrigin)*mouseRotSensitivity;
 
@@ -112,19 +113,16 @@ bool FreeFlyCamera::ActualiserCamera(int x, int y)
 		forwardView.setVy(-cos(anglePhi + deltaPhi));
 		forwardView.setVz(sin(anglePhi + deltaPhi)*sin(angleTheta + deltaTheta));
 
-		// normalisation du vecteur forward
+		// Normalisation du vecteur forward
 		forwardView = forwardView.normalize();
 
-		// Up ne change pas
-		// et right est le cross product entre up et forward
+		// Mise a jour de rightView (le cross product entre up et forward)
 		rightView = upWorld.crossProduct(forwardView);
 
-
-		// Mettre a jour la cible = point "vise" par la camera
+		// Mise a jour la cible (point "vise" par la camera)
 		targetPos = camPos + forwardView;
 
 		return true;
-
 	}
 
 	return false;

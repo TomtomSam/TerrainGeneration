@@ -3,6 +3,7 @@
 
 #include "vector3d.h"
 #include <string>
+#include <cmath>
 using namespace std;
 
 class FreeFlyCamera
@@ -12,10 +13,6 @@ private:
 	// angles de rotation (coordonnees spheriques) pour calculer le vecteur vision de la camera
 	float angleTheta;
 	float anglePhi;
-
-	// Vecteurs de direction tout doit et à droite
-	Vector3D forwardMove;
-	Vector3D rightMove;
 
 	// Direction de la vue
 	Vector3D forwardView;
