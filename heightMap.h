@@ -24,7 +24,6 @@ class heightMap
         float maxHeight;
 		float posOcean;
 		float dilatation; //Permet de dilater la map avec la molette de la souris
-		bool IsDilated;
         vector< vector<Point*> > heightMatrix;
 
 		//Data pour le VBO
@@ -56,7 +55,6 @@ class heightMap
         void setHeightMap(int lig, int col, Point* point);
 		void setPosOcean(float _pos);
 		void setDilatation(float _dilatation);
-		void setIsDilated(bool _IsDilated);
 
         //Methods
         void initialisation();
@@ -73,7 +71,6 @@ class heightMap
 		void FillDataBuffersColors();
 		void compteurFPS(int windowW, int windowH, int FPS);
 		void dessinOcean();
-		void dessinCacheMisere();
 
         //Constructors
         heightMap();

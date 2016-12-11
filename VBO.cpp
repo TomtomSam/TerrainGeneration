@@ -1,10 +1,13 @@
 #include "VBO.h"
 using namespace std;
 
+// FEEDERS
 void VBO::FeedPos(vector<float> _pos){ pos = _pos; }
 void VBO::FeedCol(vector<float> _col){ col = _col; }
 void VBO::FeedTex(vector<float> _tex){ tex = _tex; }
 
+// METHODS
+// Fonction de construction du VBO
 void VBO::BuildBuffer()
 {
 #define P_SIZE 3
@@ -12,52 +15,52 @@ void VBO::BuildBuffer()
 #define T_SIZE 2
 #define BUFFER_OFFSET(a) ((char*)NULL + (a))
 
-
 	//POSITION
 
 	// Creation d'un objet tampon et recuperation de son identifiant
 	glGenBuffers(1, &bufferPos);
+
 	// Bindage du buffer
 	glBindBuffer(GL_ARRAY_BUFFER, bufferPos);
-	// On alloue l'espace necessaire en memoire
-	// Il y a 2^n strips à tracer et chaque strip contient 2*(2^n+1) sommets
+
+	// Allocation l'espace necessaire en memoire (2^n strips à tracer et chaque strip contient 2*(2^n+1) sommets)
 	glBufferData(GL_ARRAY_BUFFER,                   // Cible 
-		pos.size() *sizeof pos[0],	// Taille des positions Taille des couleurs Taille des textures
+		pos.size() *sizeof pos[0],					// Taille des positions
 		NULL,
 		GL_STREAM_DRAW);							// Mode de dessin
-	//Remplissage du buffer avec les subData
+
+	// Remplissage du buffer avec les subData
 	if (pos.size() > 0)
 	{
 		// Specification des donnees
 		glBufferSubData(GL_ARRAY_BUFFER,
-			0,                            // emplacement des donnees dans le VBO
-			pos.size()*sizeof pos[0], // Taille des donnees
-			&pos[0]);
+			0,							// Emplacement des donnees dans le VBO
+			pos.size()*sizeof pos[0],	// Taille des donnees
+			&pos[0]);					// Adresse des donnes
 
 		glVertexPointer(P_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(0));
 		glEnableClientState(GL_VERTEX_ARRAY);
 	}
 
-
 	//COLORS
+
 	// Creation d'un objet tampon et recuperation de son identifiant
 	glGenBuffers(1, &bufferCol);
 
 	// Bindage du buffer
 	glBindBuffer(GL_ARRAY_BUFFER, bufferCol);
 
-	// On alloue l'espace necessaire en memoire
-	// Il y a 2^n strips à tracer et chaque strip contient 2*(2^n+1) sommets
-	glBufferData(GL_ARRAY_BUFFER,                   // Cible 
-		 col.size()*sizeof col[0],	// Taille des positions Taille des couleurs Taille des textures
+	// Allocation l'espace necessaire en memoire
+	glBufferData(GL_ARRAY_BUFFER,       // Cible 
+		 col.size()*sizeof col[0],		// Taille des couleurs
 		NULL,
-		GL_STREAM_DRAW);							// Mode de dessin
+		GL_STREAM_DRAW);				// Mode de dessin
 
 	//Remplissage du buffer avec les subData
 	if (col.size() > 0)
 	{
 		glBufferSubData(GL_ARRAY_BUFFER,
-			0,	// Emplacement
+			0,							// Emplacement
 			col.size()*sizeof pos[0],	// Taille
 			&col[0]);					// Adresse
 
@@ -65,18 +68,20 @@ void VBO::BuildBuffer()
 		glEnableClientState(GL_COLOR_ARRAY);
 	}
 
-	//TEXTURES
+	//TEXTURE
 	// Creation d'un objet tampon et recuperation de son identifiant
 	glGenBuffers(1, &bufferTex);
+
 	// Bindage du buffer
 	glBindBuffer(GL_ARRAY_BUFFER, bufferTex);
-	// On alloue l'espace necessaire en memoire
-	// Il y a 2^n strips à tracer et chaque strip contient 2*(2^n+1) sommets
-	glBufferData(GL_ARRAY_BUFFER,                   // Cible 
-		tex.size()*sizeof col[0],	// Taille des positions Taille des couleurs Taille des textures
-		NULL,
-		GL_STREAM_DRAW);							// Mode de dessin
 
+	// Allocation l'espace necessaire en memoire
+	glBufferData(GL_ARRAY_BUFFER,       // Cible 
+		tex.size()*sizeof col[0],		//  Taille des textures
+		NULL,
+		GL_STREAM_DRAW);				// Mode de dessin
+
+	//Remplissage du buffer avec les subData
 	if (tex.size() > 0)
 	{
 		glBufferSubData(GL_ARRAY_BUFFER,
@@ -84,11 +89,27 @@ void VBO::BuildBuffer()
 			tex.size()*sizeof pos[0],	// Taille
 			&tex[0]);					// Adresse
 
-		glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(0));
+		glClientActiveTexture(GL_TEXTURE1);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(0));
+ 
+		glClientActiveTexture(GL_TEXTURE2);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(tex.size()/4*sizeof tex[0]));
+ 
+		glClientActiveTexture(GL_TEXTURE3);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(2*tex.size()/4*sizeof tex[0]));
+
+		glClientActiveTexture(GL_TEXTURE4);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(3*tex.size()/4*sizeof tex[0]));
+ 
+		glClientActiveTexture(GL_TEXTURE0);
 	}
 }
 
+// Fonction de dessin du VBO
 void VBO::DrawBuffer()
 {
 	// Dessin des strips
@@ -96,6 +117,7 @@ void VBO::DrawBuffer()
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, pos.size() / 3);
 }
 
+// Fonction de mise a jour des positions du VBO
 void VBO::ActualizePosBuffer()
 {
 	glBindBuffer(GL_ARRAY_BUFFER, bufferPos);
@@ -104,12 +126,6 @@ void VBO::ActualizePosBuffer()
 	//On obtient la position mémoire de nos data
 	pos_vbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
-	if (pos_vbo == NULL)
-	{
-		fprintf(stderr, "impossible d'acceder aux donnees du vbo!\n");
-		exit(EXIT_FAILURE);
-	}
-
 	// On transfert les nouvelles data au bon endroit 
 	memcpy(pos_vbo, &pos[0], pos.size()*sizeof pos[0]);
 
@@ -117,6 +133,7 @@ void VBO::ActualizePosBuffer()
 	pos_vbo = NULL;
 }
 
+// Fonction de mise a jour des couleurs du VBO
 void VBO::ActualizeColBuffer()
 {
 	glBindBuffer(GL_ARRAY_BUFFER, bufferCol);
@@ -125,17 +142,10 @@ void VBO::ActualizeColBuffer()
 	//On obtient la position mémoire de nos data
 	col_vbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
-	if (col_vbo == NULL)
-	{
-		fprintf(stderr, "impossible d'acceder aux donnees du vbo!\n");
-		exit(EXIT_FAILURE);
-	}
-
 	// On transfert les nouvelles data au bon endroit 
 	memcpy(col_vbo, &col[0], col.size()*sizeof col[0]);
 
 	glUnmapBuffer(GL_ARRAY_BUFFER);
-
 	col_vbo = NULL;
 }
 
@@ -147,19 +157,13 @@ void VBO::ActualizeTexBuffer()
 	//On obtient la position mémoire de nos data
 	tex_vbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
-	if (tex_vbo == NULL)
-	{
-		fprintf(stderr, "impossible d'acceder aux donnees du vbo!\n");
-		exit(EXIT_FAILURE);
-	}
-
 	// On transfert les nouvelles data au bon endroit 
 	memcpy(tex_vbo, &tex[0], tex.size()*sizeof tex[0]);
 
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	tex_vbo = NULL;
 }
-
+// Fonction de liberation de la place du VBO en memoire
 void VBO::DestroyVBO()
 {
 	// Desactivation des tableaux de sommets
@@ -167,79 +171,14 @@ void VBO::DestroyVBO()
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	// Liberation de la place en memmoire
+	// Liberation de la place en memoire
 	glDeleteBuffers(1, &bufferPos);
 	glDeleteBuffers(1, &bufferCol);
 	glDeleteBuffers(1, &bufferTex);
 }
 
-VBO::VBO()
-{
-	pos.clear();
-	tex.clear();
-	col.clear();
-}
+// CONSTRUCTOR
+VBO::VBO(){}
 
-
-VBO::~VBO()
-{
-
-	
-
-}
-
-
-/*void VBO::BuildAndDrawBuffer()
-{
-#define P_SIZE 3
-#define C_SIZE 3
-#define T_SIZE 2
-#define BUFFER_OFFSET(a) ((char*)NULL + (a))
-// Creation d'un objet tampon et recuperation de son identifiant
-glGenBuffers(1, &buffer);
-// Bindage du buffer
-glBindBuffer(GL_ARRAY_BUFFER, buffer);
-// On alloue l'espace necessaire en memoire
-// Il y a 2^n strips à tracer et chaque strip contient 2*(2^n+1) sommets
-glBufferData(GL_ARRAY_BUFFER,                   // Cible
-(pos.size() + col.size() + tex.size())*sizeof pos[0] ,	// Taille des positions Taille des couleurs Taille des textures
-NULL,
-GL_STREAM_DRAW);							// Mode de dessin
-//Remplissage du buffer avec les subData
-if (pos.size() > 0)
-{
-// Specification des donnees
-glBufferSubData(GL_ARRAY_BUFFER,
-0,                            // emplacement des donnees dans le VBO
-pos.size()*sizeof pos[0], // Taille des donnees
-&pos[0]);
-glVertexPointer(P_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(0));
-glEnableClientState(GL_VERTEX_ARRAY);
-}
-if (col.size() > 0)
-{
-glBufferSubData(GL_ARRAY_BUFFER,
-pos.size()*sizeof pos[0],	// Emplacement
-col.size()*sizeof pos[0],	// Taille
-&col[0]);							// Adresse
-glColorPointer(C_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(pos.size()*sizeof pos[0]));
-glEnableClientState(GL_COLOR_ARRAY);
-}
-if (tex.size() > 0)
-{
-glBufferSubData(GL_ARRAY_BUFFER,
-pos.size()*sizeof pos[0] + col.size()*sizeof pos[0],	// Emplacement
-tex.size()*sizeof pos[0],	// Taille
-&tex[0]);							// Adresse
-glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(pos.size()*sizeof pos[0] + col.size()*sizeof pos[0]));
-glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-}
-// Dessin des strips
-glDrawArrays(GL_TRIANGLE_STRIP, 0, pos.size()/3);
-// Desactivation des tableaux de sommets
-glDisableClientState(GL_COLOR_ARRAY);
-glDisableClientState(GL_VERTEX_ARRAY);
-glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-// Liberation de la place en memmoire
-glDeleteBuffers(1, &buffer);
-}*/
+// DESTRUCTOR
+VBO::~VBO(){}
