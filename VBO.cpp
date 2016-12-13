@@ -2,9 +2,9 @@
 using namespace std;
 
 // FEEDERS
-void VBO::FeedPos(vector<float> _pos){ pos = _pos; }
-void VBO::FeedCol(vector<float> _col){ col = _col; }
-void VBO::FeedTex(vector<float> _tex){ tex = _tex; }
+void VBO::FeedPos(vector<float> _pos){ pos.clear(); pos = _pos; }
+void VBO::FeedCol(vector<float> _col){ col.clear(); col = _col; }
+void VBO::FeedTex(vector<float> _tex){ tex.clear(); tex = _tex; }
 
 // METHODS
 // Fonction de construction du VBO

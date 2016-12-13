@@ -13,7 +13,7 @@ vector<float> heightMap::getCol(){ return colors; }
 vector<float> heightMap::getTex(){ return tex; }
 float heightMap::getPosOcean(){ return posOcean; }
 float heightMap::getDilatation(){ return dilatation; }
-float heightMap::getTaille(){return static_cast<float>(pow(2, getLength()));}
+int heightMap::getTaille(){return pow(2, getLength());}
 
 // SETTERS
 void heightMap::setLength(int myLength){length=myLength;}
@@ -21,6 +21,10 @@ void heightMap::setWidth(int myWidth){width=myWidth;}
 void heightMap::setMaxDepth(float myMaxDepth){maxDepth=myMaxDepth;}
 void heightMap::setMaxHeight(float myMaxHeight){maxHeight=myMaxHeight;}
 void heightMap::setHeightMap(int lig, int col, Point* point){heightMatrix[lig][col]=point;}
+void heightMap::setTaille(){ taille = pow(2, getLength()); }
+void heightMap::setMatrix(vector<Point*> newRow){ heightMatrix.push_back(newRow); }
+void heightMap::clearMatrix(){ heightMatrix.clear(); }
+void heightMap::resetDilatation(){ dilatation = 1.0f; }
 
 void heightMap::setPosOcean(float _pos)
 {
@@ -431,10 +435,7 @@ void heightMap::FillDataBuffersPosColors()
 	pos.push_back(taille*dilatation);
 	pos.push_back(heightMatrix[taille][0]->getHeight());
 	pos.push_back(0);
-	//Couleur noire pour le cache misère
-	colors.push_back(0);
-	colors.push_back(0);
-	colors.push_back(0);
+	
 
 	//Récupération de l'altitude minimale
 	float maxes[2];
@@ -565,16 +566,10 @@ void heightMap::FillDataBuffersColors()
 		}
 	}
 
-	//Couleur du Cache Misère
-	colors.push_back(0);
-	colors.push_back(0);
-	colors.push_back(0);
-
 	//Nouvelle position du Cache Misère
-	int nombreDePosMap = 3 * 2 * taille*(taille + 1)+1;
-	int nombredePosCacheMisere = 3 * 4 * 2*(taille + 1);
+	int nombreDePosMap = 3 * 2 * taille*(taille + 1);
 	//Suppression des anciennes données du cache misère
-	pos.erase(pos.begin() + nombreDePosMap, pos.begin() + nombreDePosMap+nombredePosCacheMisere);
+	pos.erase(pos.begin() + nombreDePosMap, pos.end());
 
 	//Repetition du dernier point de la map pour ne pas tracer le triangle indésirable de la Strip.
 	pos.push_back(taille*dilatation);
@@ -672,11 +667,6 @@ void heightMap::FillDataBuffersColors()
 // Fonction de gestion du compteur FPS
 void heightMap::compteurFPS(int windowW, int windowH, int FPS)
 {
-	// Choix de la projection orthographique pour le texte
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluOrtho2D(0.0, windowW, 0.0, windowH);
-
 	// Affichage du texte
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -738,6 +728,7 @@ heightMap::heightMap(){
 	setMaxDepth(0.0);
 	setMaxHeight(0.0);
 	dilatation = 1.0f;
+	taille = pow(2, 5);
 
 	for(int l=0;l<1024;l++) // Par defaut la map fait 1024x1024
 	{
@@ -750,21 +741,22 @@ heightMap::heightMap(){
 	}
 }
 
-heightMap::heightMap(int taille){
+heightMap::heightMap(int size){
 
-	if (taille > 11){ taille = 11; }
-	if (taille < 1){ taille = 1; }
+	if (size > 11){ size = 11; }
+	if (size < 1){ size = 1; }
 
-	setLength(taille);
-	setWidth(taille);
-	setMaxDepth(static_cast<float>(-pow(2, taille)));
-	setMaxHeight(static_cast<float>(pow(2,taille)));
+	setLength(size);
+	setWidth(size);
+	setMaxDepth(static_cast<float>(-pow(2, size)));
+	setMaxHeight(static_cast<float>(pow(2, size)));
 	dilatation = 1.0f;
+	taille = pow(2, 5);
 
-	for (int l = 0; l<1 + pow(2, taille); l++)
+	for (int l = 0; l<1 + pow(2, size); l++)
 	{
 		vector<Point*> row;
-		for (int c = 0; c<1 + pow(2, taille); c++)
+		for (int c = 0; c<1 + pow(2, size); c++)
 		{
 			row.push_back(new Point(0, 0, 0));
 		}
@@ -778,6 +770,7 @@ heightMap::heightMap(int myLength, int myWidth, float myMaxDepth, float myMaxHei
 	setMaxDepth(myMaxDepth);
 	setMaxHeight(myMaxHeight);
 	dilatation = 1.0f;
+	taille = pow(2, 5);
 
 	for(int l=0;l<1+pow(2,myWidth);l++)
 	{

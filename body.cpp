@@ -16,8 +16,9 @@ using namespace std;
 //#include "Program.h"
 #include "CallbackHandler.h"
 
+
 // Initialisation de la carte
-heightMap maMap(7);
+heightMap maMap(5);
 
 //// Creation des textures
 //Texture water;
@@ -25,22 +26,23 @@ heightMap maMap(7);
 //Texture ice;
 //Texture sand;
 
+
+
 // Creation du chrono
 Chrono chrono;
 
 // Initialisation du Vertex Buffer Object
 VBO monVBO;
 
-// Initialisation du nombre de points par ligne/colonne
-int taille = static_cast<int>(pow(2, maMap.getLength()));
-
 // Creation et initialisation  de la camera
-FreeFlyCamera camera(static_cast<float>(taille)/100, 0.5*taille, taille, -0.5*taille, 0, -0.5*taille, 0.75*taille);
+FreeFlyCamera camera(static_cast<float>(maMap.getTaille()) / 100, 0.5*maMap.getTaille(), maMap.getTaille(), -0.5*maMap.getTaille(), 0, -0.5*maMap.getTaille(), 0.75*maMap.getTaille());
 
 // Initialisation des proprietes de la fenêtre
 int windowW = 1000;
 int windowH = 550;
 int FPS = 0;
+
+InterfaceUtilisateur IU(&maMap, &monVBO,&camera);
 
 // Definition de la fonction d'affichage
 GLvoid affichage()
@@ -54,8 +56,15 @@ GLvoid affichage()
 	// Effacement du frame buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	// Choix de la projection orthographique pour le texte
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0.0, windowW, 0.0, windowH);
 	// Affichage du compteur de FPS
 	maMap.compteurFPS(windowW, windowH, FPS);
+
+	//DESSIN DE LINTERFACE GRAPHIQUE
+	IU.draw(windowW,windowH);
 
 	// Passage en mode perspective pour afficher la map
 	glMatrixMode(GL_PROJECTION);
@@ -65,7 +74,7 @@ GLvoid affichage()
 	glViewport(0, 0, windowW, windowH);
 
 	// Mise en place de la perspective
-	camera.setFar(taille * 2 * maMap.getDilatation());
+	camera.setFar(maMap.getTaille() * 2 * maMap.getDilatation());
 	gluPerspective(camera.getFocale(), 1.0, camera.getNear(), camera.getFar());
 
 	glMatrixMode(GL_MODELVIEW);
@@ -121,7 +130,11 @@ int main (int argc, char *argv[])
 	glewInit();
 
 	// Définition de la couleur d'effacement du framebuffer
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	//NOIR
+	//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	//BLEU MINUIT
+	glClearColor(0.0f, 0.2f, 0.4f, 0.0f);
+	
 
 	// Activation du Z-buffer
 	glEnable(GL_DEPTH_TEST);
@@ -153,7 +166,7 @@ int main (int argc, char *argv[])
 	monVBO.BuildBuffer();
 
 	// Reglages de la camera
-	camera.setFar(static_cast<float>(taille*2));
+	camera.setFar(static_cast<float>(maMap.getTaille() * 2));
 
 	// Definition des fonctions de callback
 	glutDisplayFunc(affichage);
@@ -162,6 +175,7 @@ int main (int argc, char *argv[])
 	glutMouseFunc(souris);
 	glutMotionFunc(deplacementSouris);
 	glutReshapeFunc(redimensionner);
+	glutPassiveMotionFunc(deplacementSourisPassif);
 
 	// Calcul des mins et max des altitudes de la carte
 	float maxMin[2];

@@ -5,8 +5,10 @@ using namespace std;
 extern FreeFlyCamera camera;
 extern VBO monVBO;
 extern heightMap maMap;
+extern InterfaceUtilisateur IU;
 extern int windowW;
 extern int windowH;
+
 
 // Definition de la fonction gerant les interruptions clavier
 GLvoid clavier(unsigned char touche, int x, int y) 
@@ -35,7 +37,7 @@ GLvoid clavier(unsigned char touche, int x, int y)
 	// Affichage des polygones remplis
 	case 'p': 
 	case 'P':
-		glPolygonMode(GL_FRONT, GL_FILL);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		break;
 	// Affichage en mode fil de fer
 	case 'o': 
@@ -118,6 +120,13 @@ GLvoid souris(int bouton, int etat, int x, int y)
 		{	
 			// Stockage des positions de la souris
 			camera.setBouttonDown(x,y);
+
+
+			//Detection d'évenement dans l'interface utilisateur
+			if (IU.getSurvol())
+			{
+				IU.action();
+			}
 		}
 	}
 }
@@ -133,6 +142,26 @@ void deplacementSouris(int x, int y)
 	// Reaffichage si le clic de la souris est actif
 	if (affiche){ glutPostRedisplay();}
 }
+
+void deplacementSourisPassif(int x, int y)
+{
+	//Booléen permettant la comparaison du survol de bouton entre deux frame
+	bool hoover = false;
+	bool PreviousHoover = IU.getSurvol();
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	//Test de présence dans un bouton
+	 IU.testSurvol(x, y,windowW, windowH);
+	 hoover = IU.getSurvol();
+
+
+	//Réaffichage que si on quitte ou on rentre dans un bouton
+	if (hoover != PreviousHoover){ glutPostRedisplay();}
+	
+}
+
 
 // Callback de redimensionnement de la fenêtre
 GLvoid redimensionner(int _windowW, int _windowH)

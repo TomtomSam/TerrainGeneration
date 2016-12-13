@@ -20,6 +20,7 @@ class heightMap
     private:
         int length;
         int width;
+		int taille;
         float maxDepth;
         float maxHeight;
 		float posOcean;
@@ -46,6 +47,7 @@ class heightMap
 		vector<float> getPos();
 		vector<float> getCol();
 		vector<float> getTex();
+		int getTaille();
 
         //Setters
         void setLength(int myLength);
@@ -55,6 +57,10 @@ class heightMap
         void setHeightMap(int lig, int col, Point* point);
 		void setPosOcean(float _pos);
 		void setDilatation(float _dilatation);
+		void setTaille();
+		void setMatrix(vector<Point*> newRow);
+		void clearMatrix();
+		void resetDilatation();
 
         //Methods
         void initialisation();
@@ -62,7 +68,6 @@ class heightMap
         void generateMatrix();
         void diamondStep( int pas);
         void squareStep(int pas);
-		float getTaille();
         void giveMaxes(float* max_min);
 		void mapColor();
 		void seuilDefinition(float* seuil);

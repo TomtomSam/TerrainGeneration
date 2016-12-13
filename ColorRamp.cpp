@@ -4,46 +4,46 @@
 des hauteurs et prend en entrée la différence entre la hauteur max et min
 de la map afin de faire correspondre une couleur à une altitude.*/
 
+// METHODS
 void ColorRamp::Remplissage(float HauteurMax, float posOcean)
 {
-//Limites RGB des biomes
-//10% 45% 70% 90%
-//Plage Jaune
+	// PLAGE jaune
 	float PLAGE_R =228;
 	float PLAGE_G =178;
 	float PLAGE_B =36;
-	//PLAINE vert clair
+	// PLAINE vert clair
 	float PLAINE_R =146;
 	float PLAINE_G =208;
 	float PLAINE_B =80;
-	//HAUTE PLAINE vert foncé
+	// HAUTE PLAINE vert foncé
 	float HPLAINE_R =24;
 	float HPLAINE_G =122;
 	float HPLAINE_B =29;
-	//BASSE MONTAGNE marron
+	// BASSE MONTAGNE marron
 	float BMONT_R =66;
 	float BMONT_G =39;
 	float BMONT_B =7;
-	//Rocaille gris foncé
+	// ROCAILLE gris foncé
 	float ROCK =125;
-	//NEIGE
+	// NEIGE blanc
 	float NEIGE =255;
 
-	//Nettoyage des vecteurs
+	// Nettoyage des vecteurs
 	R.clear();
 	G.clear();
 	B.clear();
 
-	//Difference de hauteur entre l'océan et le plus haut point
+	// Difference de hauteur entre l'ocean et le point culminant
 	int Envergure = static_cast<int>(HauteurMax-posOcean)+1;
 
-	//Envergure de chaque phase
+	// Envergure de chaque phase
 	int plage_plaine = static_cast<int>(0.1*Envergure);
 	int plaine_Hplaine = static_cast<int>(0.1*Envergure);
 	int Hplaine_Mont = static_cast<int>(0.5*Envergure);
 	int Mont_Rock = static_cast<int>(0.1*Envergure);
 	int Rock_Neige = static_cast<int>(0.2*Envergure);
 	
+	// Remplissage des couleurs en fonction de l'altitude
 	R += Lerp(PLAGE_R / 255, PLAINE_R / 255, plage_plaine);
 	R += Lerp(PLAINE_R / 255, HPLAINE_R / 255, plaine_Hplaine);
 	R += Lerp(HPLAINE_R / 255, BMONT_R / 255, Hplaine_Mont);
@@ -62,8 +62,7 @@ void ColorRamp::Remplissage(float HauteurMax, float posOcean)
 	B += Lerp(BMONT_B / 255, ROCK / 255, Mont_Rock);
 	B += Lerp(ROCK / 255, NEIGE / 255, Rock_Neige);
 	
-
-	//On rempli avec de la neige
+	// Remplissage avec de la neige
 	do{
 		R.push_back(1);
 		G.push_back(1);
@@ -73,6 +72,7 @@ void ColorRamp::Remplissage(float HauteurMax, float posOcean)
 	
 }
 
+// Fonction realisant l'interpolation 
 vector<float> ColorRamp::Lerp(float col1, float col2, int env)
 {
 	vector<float> tab;
@@ -87,19 +87,22 @@ vector<float> ColorRamp::Lerp(float col1, float col2, int env)
 	return tab;
 }
 
+// GETTERS
 float ColorRamp::getR(int i){ return R[i]; }
 float ColorRamp::getG(int i){ return G[i]; }
 float ColorRamp::getB(int i){ return B[i]; }
 
+// CONSTRUCTORS
 ColorRamp::ColorRamp()
 {
 }
 
-
+// DESTRUCTORS
 ColorRamp::~ColorRamp()
 {
 }
 
+// Surcharge de l'operateur +=
 vector<float>& operator+=(vector<float>& v1, vector<float>& v2){
 
 	for (int i = 0; i<static_cast<int>(v2.size()); i++)
