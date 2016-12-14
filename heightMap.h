@@ -24,8 +24,9 @@ class heightMap
         float maxDepth;
         float maxHeight;
 		float posOcean;
-		float dilatation; //Permet de dilater la map avec la molette de la souris
+		float dilatation; 
         vector< vector<Point*> > heightMatrix;
+		GLenum renderMode;
 
 		//Data pour le VBO
 		vector<float> pos;
@@ -48,6 +49,7 @@ class heightMap
 		vector<float> getCol();
 		vector<float> getTex();
 		int getTaille();
+		GLenum  getRenderMode();
 
         //Setters
         void setLength(int myLength);
@@ -61,6 +63,7 @@ class heightMap
 		void setMatrix(vector<Point*> newRow);
 		void clearMatrix();
 		void resetDilatation();
+		void setRenderMode(GLenum _renderMode);
 
         //Methods
         void initialisation();
@@ -72,8 +75,10 @@ class heightMap
 		void mapColor();
 		void seuilDefinition(float* seuil);
 		void ecrireFichierObj();
-		void FillDataBuffersPosColors();
+		void FillDataBuffersPosColorsTex();
 		void FillDataBuffersColors();
+		void FillDataBuffersPos();
+		void FillDataPosCacheMisere();
 		void compteurFPS(int windowW, int windowH, int FPS);
 		void dessinOcean();
 

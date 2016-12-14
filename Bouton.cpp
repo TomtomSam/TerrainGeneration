@@ -43,7 +43,7 @@ void Bouton::draw(int windowW,int windowH)
 	glTranslatef(windowW-posX, windowH-posY, 0);
 
 	//Couleur du texte
-	glColor3f(0.86f,0.87f,0.94f);
+	glColor3f(0,0,0);
 	// Positionnement du texte
 	glRasterPos2i(20,  8);
 	// Choix Police
@@ -59,9 +59,9 @@ void Bouton::draw(int windowW,int windowH)
 	//Mise en valeur des bords en cas de survol
 	if (survol)
 	{
-		glLineWidth(2.0f);
+		glLineWidth(4.0f);
 		glBegin(GL_LINE_LOOP);
-		glColor3f(1.0f,1.0f,1.0f);
+		glColor3f(0,0,0);
 		glVertex2i(0, 0);
 		glVertex2i(largeur, 0);
 		glVertex2i(largeur, hauteur);
@@ -72,8 +72,7 @@ void Bouton::draw(int windowW,int windowH)
 
 	//Dessin du fond
 	glBegin(GL_QUADS);
-	//glColor3f(0.52f, 0.25f, 0.66f);
-	glColor3f(0.0f, 0.0f, 0.0f);
+	glColor3f(0.8,0.9,0.8);
 	glVertex2i(0, 0);
 	glVertex2i(largeur, 0);
 	glVertex2i(largeur, hauteur);

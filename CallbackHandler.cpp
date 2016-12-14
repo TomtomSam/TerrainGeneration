@@ -34,21 +34,6 @@ GLvoid clavier(unsigned char touche, int x, int y)
 	case 'S':
 		camera.incrementMouvement("deltaMove", '-');
 		break;
-	// Affichage des polygones remplis
-	case 'p': 
-	case 'P':
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		break;
-	// Affichage en mode fil de fer
-	case 'o': 
-	case 'O':
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		break;
-	// Affichage en nuage de points
-	case 'i': 
-	case 'I':
-		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-		break;
 		/*case 'h': // shader activate
 		case 'H':
 		glUseProgram(prog.getProgramID());
@@ -72,11 +57,6 @@ GLvoid clavier(unsigned char touche, int x, int y)
 		monVBO.FeedPos(maMap.getPos());
 		monVBO.ActualizeColBuffer();
 		monVBO.ActualizePosBuffer();
-		break;
-	// Ecriture du fichier .obj associe a la map
-	case 'w':
-	case 'W':
-		maMap.ecrireFichierObj();
 		break;
 	// Dilatation horizontale de la map
 	case 'm':

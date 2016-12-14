@@ -64,6 +64,7 @@ GLvoid affichage()
 	maMap.compteurFPS(windowW, windowH, FPS);
 
 	//DESSIN DE LINTERFACE GRAPHIQUE
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	IU.draw(windowW,windowH);
 
 	// Passage en mode perspective pour afficher la map
@@ -86,6 +87,7 @@ GLvoid affichage()
 		camera.getupWorld().getVx(), camera.getupWorld().getVy(), camera.getupWorld().getVz()	);
 
 	// Dessin de la map
+	glPolygonMode(GL_FRONT_AND_BACK, maMap.getRenderMode());
 	monVBO.DrawBuffer();
 
 	// Dessin de l'ocean
@@ -130,10 +132,9 @@ int main (int argc, char *argv[])
 	glewInit();
 
 	// Définition de la couleur d'effacement du framebuffer
-	//NOIR
-	//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	//BLEU MINUIT
-	glClearColor(0.0f, 0.2f, 0.4f, 0.0f);
+	//glClearColor(0.0f, 0.2f, 0.4f, 0.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	
 
 	// Activation du Z-buffer
@@ -157,7 +158,7 @@ int main (int argc, char *argv[])
 	maMap.generateMatrix();
 
 	// Remplissage des vecteurs de data a envoyer au GPU
-	maMap.FillDataBuffersPosColors();
+	maMap.FillDataBuffersPosColorsTex();
 
 	// Remplissage du VBO
 	monVBO.FeedCol(maMap.getCol());

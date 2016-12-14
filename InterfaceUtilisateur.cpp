@@ -30,12 +30,6 @@ InterfaceUtilisateur::InterfaceUtilisateur(heightMap* _maMap, VBO* _monVBO,FreeF
 	ajouterBouton(new Bouton(510, 40, "Generate"));
 	ajouterBouton(new Bouton(375, 40, "Render Mode"));
 	ajouterBouton(new Bouton(200, 40, "Export OBJ"));
-	
-	
-	
-	
-	
-
 }
 
 
@@ -162,7 +156,7 @@ void InterfaceUtilisateur::action()
 			maMap->generateMatrix();
 
 			// Remplissage des vecteurs de data a envoyer au GPU
-			maMap->FillDataBuffersPosColors();
+			maMap->FillDataBuffersPosColorsTex();
 
 			// Remplissage du VBO
 			monVBO->FeedCol(maMap->getCol());
@@ -180,15 +174,15 @@ void InterfaceUtilisateur::action()
 				switch (renderMode)
 			{
 				case 0:
-					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+					maMap->setRenderMode(GL_FILL);
 					break;
 					// Affichage en mode fil de fer
 				case 1:
-					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+					maMap->setRenderMode(GL_LINE);
 					break;
 					// Affichage en nuage de points
 				case 2:
-					glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+					maMap->setRenderMode(GL_POINT);
 					break;
 				case 3:
 					//TODO: Activer Shaders
