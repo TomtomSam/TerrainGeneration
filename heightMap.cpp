@@ -2,7 +2,7 @@
 
 using namespace std;
 
-//GETTERS
+// GETTERS
 int heightMap::getLength(){return length;}
 int heightMap::getWidth(){return width;}
 float heightMap::getMaxDepth(){return maxDepth;}
@@ -13,19 +13,30 @@ vector<float> heightMap::getCol(){ return colors; }
 vector<float> heightMap::getTex(){ return tex; }
 float heightMap::getPosOcean(){ return posOcean; }
 float heightMap::getDilatation(){ return dilatation; }
+int heightMap::getTaille(){return pow(2, getLength());}
+GLenum heightMap::getRenderMode(){return renderMode;}
 
-//SETTERS
+// SETTERS
 void heightMap::setLength(int myLength){length=myLength;}
 void heightMap::setWidth(int myWidth){width=myWidth;}
 void heightMap::setMaxDepth(float myMaxDepth){maxDepth=myMaxDepth;}
 void heightMap::setMaxHeight(float myMaxHeight){maxHeight=myMaxHeight;}
 void heightMap::setHeightMap(int lig, int col, Point* point){heightMatrix[lig][col]=point;}
-void heightMap::setIsDilated(bool _IsDilated){IsDilated = _IsDilated;}
+void heightMap::setTaille(){ taille = pow(2, getLength()); }
+void heightMap::setMatrix(vector<Point*> newRow){ heightMatrix.push_back(newRow); }
+void heightMap::clearMatrix(){ heightMatrix.clear(); }
+void heightMap::resetDilatation(){ dilatation = 1.0f; }
 
 void heightMap::setPosOcean(float _pos)
 {
-	posOcean = _pos;
-	FillDataBuffersPosColors();
+	float maxes[2];
+	giveMaxes(maxes);
+	//Limitation de l'océan entre les bornes de la map
+	if (_pos<maxes[0] && _pos>maxes[1])
+	{
+		posOcean = _pos;
+		FillDataBuffersColors();
+	}
 }
 
 void heightMap::setDilatation(float _dilatation)
@@ -33,44 +44,50 @@ void heightMap::setDilatation(float _dilatation)
 	if(_dilatation>1){dilatation = _dilatation;}
 	else{dilatation = 1;}
 
-	//On actualise les datas
-	FillDataBuffersPosColors();	
+	// Actualisation des datas
+	FillDataBuffersPos();	
 }
 
-//METHODS
+void heightMap::setRenderMode(GLenum _renderMode)
+{
+	renderMode = _renderMode;
+}
+
+// METHODS
+// Fonction d'initialisation manuelle de la map
 void heightMap::initialisation(){
-	float corner1,corner2,corner3,corner4; //Height of the corners
-	int maxIndexColumn,maxIndexLine;//Last column/line of the map
+	float corner1,corner2,corner3,corner4; // Hauteur des coins
+	int maxIndexColumn,maxIndexLine; // Derniere ligne/colonne de la map
 
 	cout<<"Parameters of the Map:"<<endl;
-	cout<<"Length: ";//Choice of the map's length
+	cout<<"Length: "; // Choix de la longueur de la map
 	cin>>length;
-	cout<<"Width: ";//Choice of the map's width
+	cout<<"Width: "; // Choix de la largeur de la map
 	cin>>width;
-	cout<<"Maximum depth: ";//Choice of the map's minimum height
+	cout<<"Maximum depth: "; // Choix de l'altitude minimale de la map
 	cin>>maxDepth;
-	cout<<"Maximum height: ";//Choice of the map's maximum height
+	cout<<"Maximum height: "; // Choix de l'altitude maximale de la map
 	cin>>maxHeight;
 
-	do{//Choice of the top left corner's height
+	do{ // Choix de l'altitude du coin en haut a gauche
 		cout<<"Altitude of top left corner (must be between "<<maxDepth<<" and "<<maxHeight<<") : ";
 		cin>>corner1;
 	}
 	while((corner1>maxHeight)||(corner1<maxDepth));
 
-	do{//Choice of the top right corner's height
+	do{ // Choix de l'altitude du coin en haut a droite
 		cout<<"Altitude of top right corner (must be between "<<maxDepth<<" and "<<maxHeight<<") : ";
 		cin>>corner2;
 	}
 	while((corner2>maxHeight)||(corner2<maxDepth));
 
-	do{//Choice of the bottom right corner's height
+	do{ // Choix de l'altitude du coin en bas a droite
 		cout<<"Altitude of bottom right corner (must be between "<<maxDepth<<" and "<<maxHeight<<") : ";
 		cin>>corner3;
 	}
 	while((corner3>maxHeight)||(corner3<maxDepth));
 
-	do{//Choice of the bottom left corner's height
+	do{ // Choix de l'altitude du coin en bas a gauche
 		cout<<"Altitude of bottom left corner (must be between "<<maxDepth<<" and "<<maxHeight<<") : ";
 		cin>>corner4;
 	}
@@ -78,44 +95,33 @@ void heightMap::initialisation(){
 
 	cout<<endl;
 
-	//Setting maxIndexColumn and maxIndexLine
+	// Initialisation de maxIndexColumn et maxIndexLine
 	maxIndexColumn=static_cast<int>(pow(2,length));
 	maxIndexLine=static_cast<int>(pow(2,width));
 
-	//Setting the height of the map's corners
+	// Initialisation des hauteurs des coins
 	setHeightMap(0,0,new Point(0,0,corner1));
 	setHeightMap(0, maxIndexColumn, new Point(0, maxIndexColumn, corner2));
 	setHeightMap(maxIndexLine, maxIndexColumn, new Point(maxIndexLine, maxIndexColumn, corner3));
 	setHeightMap(maxIndexLine, 0, new Point(maxIndexLine, 0, corner4));
 }
 
+// Fonction d'initialisation automatique de la map
 void heightMap::initialisationAuto(){
-	float corner1,corner2,corner3,corner4; //Height of the corners
-	int maxIndexColumn,maxIndexLine;//Last column/line of the map
+	int maxIndexColumn,maxIndexLine;// Derniere ligne/colonne de la map
 	int signe = 0;
 
 	maxIndexColumn = static_cast<int>(pow(2, length));
 	maxIndexLine = maxIndexColumn;
 
-	//Corner's random height between maxDepth and maxHeight;
-	/*corner1 = static_cast<float>((rand() % (2 * maxIndexLine + 1)) - maxIndexLine);
-	corner2 = static_cast<float>((rand() % (2 * maxIndexLine + 1)) - maxIndexLine);
-	corner3 = static_cast<float>((rand() % (2 * maxIndexLine + 1)) - maxIndexLine);
-	corner4 = static_cast<float>((rand() % (2 * maxIndexLine + 1)) - maxIndexLine);*/
-
-	corner1 = 0;
-	corner2 = 0;
-	corner3 = 0;
-	corner4 = 0;
-
-	//Setting the height of the map's corners
-	setHeightMap(0, 0, new Point(0, 0, corner1));
-	setHeightMap(0, maxIndexColumn, new Point(0, maxIndexColumn, corner2));
-	setHeightMap(maxIndexLine, maxIndexColumn, new Point(maxIndexLine, maxIndexColumn, corner3));
-	setHeightMap(maxIndexLine, 0, new Point(maxIndexLine, 0, corner4));
+  // Initialisation des hauteurs des coins a zero
+	setHeightMap(0, 0, new Point(0, 0, 0));
+	setHeightMap(0, maxIndexColumn, new Point(0, maxIndexColumn, 0));
+	setHeightMap(maxIndexLine, maxIndexColumn, new Point(maxIndexLine, maxIndexColumn, 0));
+	setHeightMap(maxIndexLine, 0, new Point(maxIndexLine, 0, 0));
 }
 
-
+// Etape diamant de l'algorithme de diamant-carre
 void heightMap::diamondStep(int pas){
 	const int h=static_cast<int>(pow(2,length));
 	float moyenne=0.0;
@@ -127,22 +133,21 @@ void heightMap::diamondStep(int pas){
 		for(int y=pas;y<=h;y+=i)
 		{
 			moyenne+=heightMatrix[x-pas][y-pas]->getHeight();
-			moyenne += heightMatrix[x - pas][y + pas]->getHeight();
-			moyenne += heightMatrix[x + pas][y + pas]->getHeight();
-			moyenne += heightMatrix[x + pas][y - pas]->getHeight();
+			moyenne += heightMatrix[x-pas][y+pas]->getHeight();
+			moyenne += heightMatrix[x+pas][y+pas]->getHeight();
+			moyenne += heightMatrix[x+pas][y-pas]->getHeight();
 			moyenne/=4;
 
-			random=static_cast<float>((rand()%(2*pas+1))-pas);
-			while (abs(moyenne+random)>maxHeight)
-			{
-				random = static_cast<float>((rand() % (2 * pas + 1)) - pas);
-			}
+			do{random=static_cast<float>((rand()%(2*pas+1))-pas);}
+			while (abs(moyenne+random)>maxHeight);
+
 			heightMatrix[x][y]->setHeight(moyenne+random);
 			moyenne=0.0;
 		}
 	}
 }
 
+// Etape carre de l'algorithme de diamant-carre
 void heightMap::squareStep(int pas){
 	const int h=static_cast<int>(pow(2,length));
 	float somme=0.0;
@@ -187,11 +192,9 @@ void heightMap::squareStep(int pas){
 				n++;
 			}
 
-			random=static_cast<float>((rand() % (2*pas+1))-pas);
-			while (abs((somme / n) + random)>maxHeight)
-			{
-				random = static_cast<float>((rand() % (2 * pas + 1)) - pas);
-			}
+			do{random=static_cast<float>((rand() % (2*pas+1))-pas);}
+			while (abs((somme / n) + random)>maxHeight);
+
 			heightMatrix[x][y]->setHeight((somme/n)+random);
 		}
 	}
@@ -203,6 +206,7 @@ float heightMap::getTaille(){
 	return static_cast<float>(pow(2, getLength()));
 }
 
+// Fonction d'implementation de l'algorithme de diamant carre
 void heightMap::generateMatrix(){
 	Chrono chrono;
 	chrono.Tic();
@@ -226,6 +230,7 @@ void heightMap::generateMatrix(){
 	cout << "Generation effectuee en " << static_cast<float>(chrono.getEllapsed_time()) / 1000 << "s." << endl;
 }
 
+// Fonction de calcul des points culminant et inferieur
 void heightMap::giveMaxes(float* max_min){
 	float mini = maxHeight;
 	float maxi = maxDepth;
@@ -249,15 +254,15 @@ void heightMap::giveMaxes(float* max_min){
 	max_min[1]=mini;
 }
 
-
+// Fonction de remplissage des couleurs de la map
 void heightMap::mapColor()
 {
-	//On rempli la rampe de couleur quand on a toute les hauteurs
+	// Remplissage de la rampe de couleur quand on a toute les hauteurs
 	float maxes[2];
 	giveMaxes(maxes);
 	laRampe.Remplissage(maxes[0], posOcean);
 
-	//On recale l'oc�an en cas de dilatation
+	//On recale l'oc�an en cas de dilatation
 	if (IsDilated)
 	{ 
 		IsDilated = false;
@@ -270,7 +275,7 @@ void heightMap::mapColor()
 	{
 		for (int c = 0; c<=pow(2, length); c++)
 		{	
-			//Si on est sous l'oc�an on est couleur sable
+			// Sous l'ocean : couleur sable
 			if (heightMatrix[l][c]->getHeight() < posOcean)
 			{
 				heightMatrix[l][c]->setR(laRampe.getR(0));
@@ -288,7 +293,7 @@ void heightMap::mapColor()
 	}
 }
 
-
+// Fonction d'ecriture du fichier .obj associe a la map
 void heightMap::ecrireFichierObj(){
 	Chrono chrono;
 	chrono.Tic();
@@ -302,19 +307,18 @@ void heightMap::ecrireFichierObj(){
 	myfile << "#\n\n";
 	myfile << "o Map\n\n";
 
-	//Ecriture des vertex
+	// Ecriture des vertex
 	for (int i = 0; i <= taille; i++)
 	{
 		for (int j = 0; j <= taille; j++)
 		{
 			myfile << "v " << i*dilatation << " " << getHeightMap(i, j)->getHeight() *(1 + (dilatation - 1) / 3) << " " << j*dilatation << "\n";
-
 		}
 	}
 
 	myfile << "\n";
 
-	//ecriture des facettes
+	// Ecriture des facettes
 	for (int j = 1; j < nbrPoint-taille-1; j++)
 	{
 		if (j % (taille+1) != 0)
@@ -336,11 +340,17 @@ void heightMap::ecrireFichierObj(){
 	cout << "Fichier OBJ genere en " << static_cast<float>(chrono.getEllapsed_time()) / 1000 << "s" << endl;
 }
 
-// Remplissage du VBO
-void heightMap::FillDataBuffersPosColors()
+// Fonction de remplissage du VBO
+
+void heightMap::FillDataBuffersPosColorsTex()
 {
 	int taille = static_cast<int>(pow(2, length));
-	float stride = 1.0f / taille;
+	float stride = 10.0f/taille;
+	vector<float> tex1, tex2, tex3, tex4;
+	int factor = 1/stride;
+
+	//Sécutrité pour les map de taille 1,2 et 3.
+	if (factor == 0){ factor = 1; }
 
 	Chrono chrono;
 	chrono.Tic();
@@ -349,14 +359,13 @@ void heightMap::FillDataBuffersPosColors()
 	colors.clear();
 	tex.clear();
 
-	//On recalcule les couleurs de chaque point
+	// Recalcul des couleurs de chaque point
 	mapColor();
 
 	// Remplissage strip par strip
 	for (int i = 0; i < taille; i += 2)
 	{
-
-		// Remplissage strip vers la droite
+		// Remplissage des strips allant vers la droite
 		for (int j = 0; j <= taille; j++)
 		{
 			// Les Positions 
@@ -376,18 +385,26 @@ void heightMap::FillDataBuffersPosColors()
 			colors.push_back(heightMatrix[i+1][j]->getB());
 
 			// Les textures
-			int k;
-			for(k=0;k<4;k++){
-				tex.push_back(i*stride);
-				tex.push_back(j*stride);
-			}
-			for(k=0;k<4;k++){
-				tex.push_back((i+1)*stride);
-				tex.push_back(j*stride);
-			}
+			tex1.push_back((i%factor)*stride);
+			tex1.push_back((j%factor)*stride);
+			tex1.push_back(((i+1)%factor)*stride);
+			tex1.push_back((j%factor)*stride);
+			tex2.push_back((i%factor)*stride);
+			tex2.push_back((j%factor)*stride);
+			tex2.push_back(((i+1)%factor)*stride);
+			tex2.push_back((j%factor)*stride);
+			tex3.push_back((i%factor)*stride);
+			tex3.push_back((j%factor)*stride);
+			tex3.push_back(((i+1)%factor)*stride);
+			tex3.push_back((j%factor)*stride);
+			tex4.push_back((i%factor)*stride);
+			tex4.push_back((j%factor)*stride);
+			tex4.push_back(((i+1)%factor)*stride);
+			tex4.push_back((j%factor)*stride);
 		}
-		// Le dernier point de chaque strip est rentr� deux fois dans le vecteur pour faire le virage
-		// Remplissage strip vers la gauche
+
+		// Le dernier point de chaque strip est rentré deux fois dans le vecteur pour faire le virage
+		// Remplissage des strips allant vers la gauche
 		for (int j = taille; j >= 0; j--)
 		{
 			// Les Positions
@@ -407,30 +424,184 @@ void heightMap::FillDataBuffersPosColors()
 			colors.push_back(heightMatrix[i + 2][j]->getB());
 
 			// Les textures
-			int k;
-			for(k=0;k<4;k++){
-				tex.push_back((i+1)*stride);
-				tex.push_back(j*stride);
-			}
-			for(k=0;k<4;k++){
-				tex.push_back((i+2)*stride);
-				tex.push_back(j*stride);
-			}
+			tex1.push_back(((i+1)%factor)*stride);
+			tex1.push_back((j%factor)*stride);
+			tex1.push_back(((i+2)%factor)*stride);
+			tex1.push_back((j%factor)*stride);
+			tex2.push_back(((i+1)%factor)*stride);
+			tex2.push_back((j%factor)*stride);
+			tex2.push_back(((i+2)%factor)*stride);
+			tex2.push_back((j%factor)*stride);
+			tex3.push_back(((i+1)%factor)*stride);
+			tex3.push_back((j%factor)*stride);
+			tex3.push_back(((i+2)%factor)*stride);
+			tex3.push_back((j%factor)*stride);
+			tex4.push_back(((i+1)%factor)*stride);
+			tex4.push_back((j%factor)*stride);
+			tex4.push_back(((i+2)%factor)*stride);
+			tex4.push_back((j%factor)*stride);
 		}
 	}
+
+	tex+=tex1;
+	tex+=tex2;
+	tex+=tex3;
+	tex+=tex4;
+
+	//Ajout des positions du Cache Misère
+	FillDataPosCacheMisere();
 
 	chrono.Toc();
 	cout << "Remplissage des donnees effectue en: " << static_cast<float>(chrono.getEllapsed_time()) / 1000 << "s." << endl;
 }
 
+//Calcul des positions uniquement et Remplissage du vecteur de Data Pos
+void heightMap::FillDataBuffersPos()
+{
+	int taille = static_cast<int>(pow(2, length));
 
+	Chrono chrono;
+	chrono.Tic();
+
+	pos.clear();
+
+	// Remplissage strip par strip
+	for (int i = 0; i < taille; i += 2)
+	{
+
+		// Remplissage des strips allant vers la droite
+		for (int j = 0; j <= taille; j++)
+		{
+			// Les Positions 
+			pos.push_back(i*dilatation);
+			pos.push_back(heightMatrix[i][j]->getHeight());
+			pos.push_back(j*dilatation);
+			pos.push_back((i + 1)*dilatation);
+			pos.push_back(heightMatrix[i + 1][j]->getHeight());
+			pos.push_back(j*dilatation);
+		}
+
+		for (int j = taille; j >= 0; j--)
+		{
+			// Les Positions
+			pos.push_back((i + 1)*dilatation);
+			pos.push_back(heightMatrix[i + 1][j]->getHeight());
+			pos.push_back(j*dilatation);
+			pos.push_back((i + 2)*dilatation);
+			pos.push_back(heightMatrix[i + 2][j]->getHeight());
+			pos.push_back(j*dilatation);
+		}
+	}
+
+	//Ajout du Cache Misère
+	FillDataPosCacheMisere();
+}
+
+void heightMap::FillDataPosCacheMisere()
+	{
+
+		//Ajout du Cache Misère dans le vecteur de Pos
+
+		//Répétition du dernier point de la map pour éviter de tracer le triangle indésirable de la strip
+		pos.push_back(taille*dilatation);
+		pos.push_back(heightMatrix[taille][0]->getHeight());
+		pos.push_back(0);
+
+
+		//Récupération de l'altitude minimale
+		float maxes[2];
+		giveMaxes(maxes);
+		// En haut
+		for (int i = taille; i >= 0; i--)
+		{
+			pos.push_back(i*dilatation);
+			pos.push_back(maxes[1]);
+			pos.push_back(0);
+			if (getHeightMap(i, 0)->getHeight() >= posOcean)
+			{
+				pos.push_back(i*dilatation);
+				pos.push_back(getHeightMap(i, 0)->getHeight());
+				pos.push_back(0);
+			}
+			else
+			{
+				pos.push_back(i*dilatation);
+				pos.push_back(posOcean);
+				pos.push_back(0);
+			}
+
+		}
+		// A droite
+		for (int i = 0; i <= taille; i++)
+		{
+			pos.push_back(0);
+			pos.push_back(maxes[1]);
+			pos.push_back(i*dilatation);
+			if (getHeightMap(0, i)->getHeight() > posOcean)
+			{
+				pos.push_back(0);
+				pos.push_back(getHeightMap(0, i)->getHeight());
+				pos.push_back(i*dilatation);
+			}
+			else
+			{
+				pos.push_back(0);
+				pos.push_back(posOcean);
+				pos.push_back(i*dilatation);
+			}
+
+		}
+		// En bas
+		for (int i = 0; i <= taille; i++)
+		{
+			pos.push_back(i*dilatation);
+			pos.push_back(maxes[1]);
+			pos.push_back(taille*dilatation);
+			if (getHeightMap(i, taille)->getHeight() >= posOcean)
+			{
+				pos.push_back(i*dilatation);
+				pos.push_back(getHeightMap(i, taille)->getHeight());
+				pos.push_back(taille*dilatation);
+			}
+			else
+			{
+				pos.push_back(i*dilatation);
+				pos.push_back(posOcean);
+				pos.push_back(taille*dilatation);
+			}
+
+		}
+
+		// A gauche
+		for (int i = taille; i >= 0; i--)
+		{
+			pos.push_back(taille*dilatation);
+			pos.push_back(maxes[1]);
+			pos.push_back(i*dilatation);
+			if (getHeightMap(taille, i)->getHeight() >= posOcean)
+			{
+				pos.push_back(taille*dilatation);
+				pos.push_back(getHeightMap(taille, i)->getHeight());
+				pos.push_back(i*dilatation);
+			}
+			else
+			{
+				pos.push_back(taille*dilatation);
+				pos.push_back(posOcean);
+				pos.push_back(i*dilatation);
+			}
+
+		}
+	}
+
+// Fonction de remplissage des couleurs du VBO
 void heightMap::FillDataBuffersColors()
 {
 	int taille = static_cast<int>(pow(2, length));
 
 	colors.clear();
 
-	//On recalcule les couleurs de chaque point
+	// Recalcul les couleurs de chaque point
 	mapColor();
 
 	int j;
@@ -438,7 +609,7 @@ void heightMap::FillDataBuffersColors()
 	// Remplissage strip par strip
 	for (int i = 0; i < taille; i = i + 2)
 	{
-		// Remplissage strip vers la droite
+		// Remplissage des strips allant vers la droite
 		for (j = 0; j <= taille; j++)
 		{
 			// Les couleurs
@@ -449,8 +620,9 @@ void heightMap::FillDataBuffersColors()
 			colors.push_back(heightMatrix[i + 1][j]->getG());
 			colors.push_back(heightMatrix[i + 1][j]->getB());
 		}
-		// Le dernier point de chaque strip est rentr� deux fois dans le vecteur pour faire le virage
-		// Remplissage strip vers la gauche
+
+		// Le dernier point de chaque strip est rentré deux fois dans le vecteur pour faire le virage
+		// Remplissage des strips allant vers la gauche
 		for (j = taille; j >= 0; j--)
 		{
 			//Les couleurs
@@ -462,43 +634,63 @@ void heightMap::FillDataBuffersColors()
 			colors.push_back(heightMatrix[i + 2][j]->getB());
 		}
 	}
+	//Nouvelle position du Cache Misère
+	int nombreDePosMap = 3 * 2 * taille*(taille + 1);
+	//Suppression des anciennes données du cache misère
+	pos.erase(pos.begin() + nombreDePosMap, pos.end());
+	//Ajout du Cache Misère dans le Data Pos
+	FillDataPosCacheMisere();
+
 }
 
-
+// Fonction de gestion du compteur FPS et info
 void heightMap::compteurFPS(int windowW, int windowH, int FPS)
 {
-	//Il faut mettre le text en projection orthographique
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluOrtho2D(0.0, windowW, 0.0, windowH);
-
-	//Affichage du texte
+	// Affichage du texte
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	//Couleur du texte
+	// Couleur du texte
 	if (FPS>55){ glColor3f(0.0f, 1.0f, 0.0f); }
 	else if (FPS<56 && FPS>29){ glColor3f(1.0f, 0.5f, 0.0f); }
 	else if (FPS<30){ glColor3f(1.0f, 0.0f, 0.0f); }
 
-	//Positionnement du texte
+
+	// Positionnement du texte
 	glRasterPos2i(10, windowH - 30);
 	string s = to_string(FPS) + " FPS";
 
-	//Choix Police
+	// Choix Police
 	void * font = GLUT_BITMAP_TIMES_ROMAN_24;
 
-	//Ecriture du texte
+	// Ecriture du texte
 	for (string::iterator i = s.begin(); i != s.end(); ++i)
 	{
 		char c = *i;
 		glutBitmapCharacter(font, c);
 	}
+
+	// Positionnement des infos
+	int nbTrig = (getTaille() + 1)*(8 + getTaille() * 2);
+	glColor3f(0.9, 0.9, 0.9);
+	glRasterPos2i(10, 10);
+	string t = "Triangles: "+to_string(nbTrig);
+
+	// Choix Police
+	void * font2 = GLUT_BITMAP_TIMES_ROMAN_10;
+	
+	// Ecriture du texte
+	for (string::iterator i = t.begin(); i != t.end(); ++i)
+	{
+		char c = *i;
+		glutBitmapCharacter(font2, c);
+	}
 }
 
+// Fonction d'affichage de l'ocean
 void heightMap::dessinOcean()
 {
-  int taille = static_cast<int>(pow(2, length));
+	int taille = static_cast<int>(pow(2, length));
 	glBegin(GL_QUADS);
 	glColor3f(0, 0, 0.75);
 	glMultiTexCoord2f(GL_TEXTURE0 + 1,0,0);
@@ -524,49 +716,17 @@ void heightMap::dessinOcean()
 	glEnd();
 }
 
-void heightMap::dessinCacheMisere()
-{
-  int taille = static_cast<int>(pow(2, length));
-	glBegin(GL_TRIANGLE_STRIP);
-	glColor3f(0, 0, 0);
-	//on commence en (0,0)
-	//� droite
-	for (int i = 0; i <= taille; i++)
-	{
-		glVertex3f(0, getHeightMap(0, i)->getHeight(), i*dilatation);
-		glVertex3f(0, posOcean, i*dilatation);
-	}
-	//en bas
-	for (int i = 0; i <= taille; i++)
-	{
-		glVertex3f(i*dilatation, getHeightMap(i, taille)->getHeight(), taille*dilatation);
-		glVertex3f(i*dilatation, posOcean, taille*dilatation);
-	}
-	//� gauche
-	for (int i = taille; i >= 0; i--)
-	{
-		glVertex3f(taille*dilatation, getHeightMap(taille, i)->getHeight(), i*dilatation);
-		glVertex3f(taille*dilatation, posOcean, i*dilatation);
-	}
-	//en haut
-	for (int i = taille; i >= 0; i--)
-	{
-		glVertex3f(i*dilatation, getHeightMap(i, 0)->getHeight(), 0);
-		glVertex3f(i*dilatation, posOcean, 0);
-	}
-	glEnd();
-}
-
-//CONSTRUCTORS
+// CONSTRUCTORS
 heightMap::heightMap(){
 	setLength(0);
 	setWidth(0);
 	setMaxDepth(0.0);
 	setMaxHeight(0.0);
 	dilatation = 1.0f;
-	IsDilated = false;
+	taille = pow(2, 5);
+	renderMode = GL_FILL;
 
-	for(int l=0;l<1024;l++) //By default the map's dimensions are 1024x1024
+	for(int l=0;l<1024;l++) // Par defaut la map fait 1024x1024
 	{
 		vector<Point*> row;
 		for(int c=0;c<1024;c++)
@@ -577,31 +737,27 @@ heightMap::heightMap(){
 	}
 }
 
-heightMap::heightMap(int taille){
+heightMap::heightMap(int size){
+	if (size > 11){ size = 11; }
+	if (size < 1){ size = 1; }
 
-	if (taille > 11){ taille = 10; }
-
-	setLength(taille);
-	setWidth(taille);
-	setMaxDepth(static_cast<float>(-pow(2, taille)));
-	setMaxHeight(static_cast<float>(pow(2,taille)));
+	setLength(size);
+	setWidth(size);
+	setMaxDepth(static_cast<float>(-pow(2, size)));
+	setMaxHeight(static_cast<float>(pow(2, size)));
 	dilatation = 1.0f;
-	IsDilated = false;
+	taille = pow(2, 5);
+	renderMode = GL_FILL;
 
-	for (int l = 0; l<1 + pow(2, taille); l++)
+	for (int l = 0; l<1 + pow(2, size); l++)
 	{
 		vector<Point*> row;
-		for (int c = 0; c<1 + pow(2, taille); c++)
+		for (int c = 0; c<1 + pow(2, size); c++)
 		{
 			row.push_back(new Point(0, 0, 0));
 		}
 		heightMatrix.push_back(row);
 	}
-
-	//Clear the data
-	pos.clear();
-	colors.clear();
-	tex.clear();
 }
 
 heightMap::heightMap(int myLength, int myWidth, float myMaxDepth, float myMaxHeight){
@@ -610,7 +766,8 @@ heightMap::heightMap(int myLength, int myWidth, float myMaxDepth, float myMaxHei
 	setMaxDepth(myMaxDepth);
 	setMaxHeight(myMaxHeight);
 	dilatation = 1.0f;
-	IsDilated = false;
+	taille = pow(2, 5);
+	renderMode = GL_FILL;
 
 	for(int l=0;l<1+pow(2,myWidth);l++)
 	{
@@ -623,7 +780,5 @@ heightMap::heightMap(int myLength, int myWidth, float myMaxDepth, float myMaxHei
 	}
 }
 
-//DESTRUCTOR
-heightMap::~heightMap(){
-	//dtor
-}
+// DESTRUCTOR
+heightMap::~heightMap(){}

@@ -5,80 +5,71 @@ using namespace std;
 extern FreeFlyCamera camera;
 extern VBO monVBO;
 extern heightMap maMap;
+extern InterfaceUtilisateur IU;
+extern int windowW;
+extern int windowH;
+
 
 // Definition de la fonction gerant les interruptions clavier
-GLvoid clavier(unsigned char touche, int x, int y) {
+GLvoid clavier(unsigned char touche, int x, int y) 
+{
 	switch (touche) {
-		// Q et D on strafe
+	// Deplacement de la camera vers la gauche
 	case 'q':
 	case 'Q':
 		camera.incrementMouvement("deltaStrafe", '+');
 		break;
+	// Deplacement de la camera vers la droite
 	case 'd':
 	case 'D':
 		camera.incrementMouvement("deltaStrafe", '-');
 		break;
-		// Z et S avance/recule
+	// Deplacement de la camera vers l'avant
 	case 'z':
 	case 'Z':
 		camera.incrementMouvement("deltaMove", '+');
 		break;
+	// Deplacement de la camera vers l'arriere
 	case 's':
 	case 'S':
 		camera.incrementMouvement("deltaMove", '-');
 		break;
-	case 'p': // carre plein
-	case 'P':
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		break;
-	case 'o': // fil de fer
-	case 'O':
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		break;
-	case 'i': // sommets du carre
-	case 'I':
-		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-		break;
-		/*case 'h': // shader activate
-		case 'H':
-		glUseProgram(prog.getProgramID());
-		break;
-		case 'y': // shader deactivate
-		case 'Y':
-		glUseProgram(0);
-		break;*/ 
-	case '+': //changer le seuil de l'oc�an
+	// Rehaussage du seuil de l'ocean
+	case '+': 
 		maMap.setPosOcean(maMap.getPosOcean()+1);
 		monVBO.FeedCol(maMap.getCol());
+		monVBO.FeedPos(maMap.getPos());
 		monVBO.ActualizeColBuffer();
+		monVBO.ActualizePosBuffer();
 		break;
+	// Abaissement du seuil de l'ocean
 	case '-':
 		maMap.setPosOcean(maMap.getPosOcean() - 1);
 		monVBO.FeedCol(maMap.getCol());
+		monVBO.FeedPos(maMap.getPos());
 		monVBO.ActualizeColBuffer();
+		monVBO.ActualizePosBuffer();
 		break;
-	case 'w':
-	case 'W':
-		maMap.ecrireFichierObj();
-		break;
+	// Dilatation horizontale de la map
 	case 'm':
 	case 'M':
-		maMap.setIsDilated(true);
 		maMap.setDilatation(maMap.getDilatation() + 0.1);	
 		monVBO.FeedCol(maMap.getCol());
 		monVBO.FeedPos(maMap.getPos());
 		monVBO.ActualizeColBuffer();
 		monVBO.ActualizePosBuffer();
 		break;
+	// Compression horizontale de la map
 	case 'l':
 	case 'L':
-		maMap.setIsDilated(true);
 		maMap.setDilatation(maMap.getDilatation() - 0.1);	
 		monVBO.FeedCol(maMap.getCol());
 		monVBO.FeedPos(maMap.getPos());
 		monVBO.ActualizeColBuffer();
 		monVBO.ActualizePosBuffer();
 		break;
+
+	// Quitter l'application
 	case 27:
 		monVBO.DestroyVBO();
 		exit(0);
@@ -92,71 +83,95 @@ GLvoid clavier(unsigned char touche, int x, int y) {
 // Fonction de rappel de la souris
 GLvoid souris(int bouton, int etat, int x, int y)
 {
-	// On ne fait quelque chose que sur le bouton gauche de la souris
 	if (bouton == GLUT_LEFT_BUTTON) {
-		// si on relache le bouton on met a jour les angles theta et phi
-		// et on dit que l'on a pas clique
 		if (etat == GLUT_UP) 
 		{
+			// Mise a jour des angles theta et phi
 			camera.setBouttonUp();
 		}
 		else  
-		{	// state = GLUT_DOWN
-			// si l'on a clique sur le bouton gauche
-			// on garde les positions de la souris au moment du clic gauche
+		{	
+			// Stockage des positions de la souris
 			camera.setBouttonDown(x,y);
+
+			//Detection d'évenement dans l'interface utilisateur
+			if (IU.getSurvol())
+			{
+				IU.action();
+			}
 		}
 	}
 }
 
 // Fonction de gestion du deplacement de la souris
-void deplacementSouris(int x, int y) {
-
+void deplacementSouris(int x, int y) 
+{
 	bool affiche = false;
 
-	//on actualise les vecteurs de la cam�ra
+	// Actualisation des vecteurs de la caméra
 	affiche = camera.ActualiserCamera(x, y);
 
-	//on n'affiche que si on est en train de cliquer
+	// Reaffichage si le clic de la souris est actif
 	if (affiche){ glutPostRedisplay();}
 }
 
-// Callback de redimensionnement de la fen�tre
-GLvoid redimensionner(int _windowW, int _windowH){//float _focale, float _near, float _far) {
+
+void deplacementSourisPassif(int x, int y)
+{
+	//Booléen permettant la comparaison du survol de bouton entre deux frame
+	bool hoover = false;
+	bool PreviousHoover = IU.getSurvol();
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	//Test de présence dans un bouton
+	 IU.testSurvol(x, y,windowW, windowH);
+	 hoover = IU.getSurvol();
+
+
+	//Réaffichage que si on quitte ou on rentre dans un bouton
+	if (hoover != PreviousHoover){ glutPostRedisplay();}
 	
-	// Garde les valeurs
-	int windowW = _windowW;
-	int windowH = _windowH;
-	// eviter une division par 0
+}
+
+// Callback de redimensionnement de la fenêtre
+GLvoid redimensionner(int _windowW, int _windowH)
+{
+	// Stockage des dimensions de la fenetres
+
+	windowW = _windowW;
+	windowH = _windowH;
+	
+	// Gestion des divisions par 0
 	if(windowH==0)
 		windowH = 1;
 
-	float ratio = static_cast<float>(windowW) / static_cast<float>(windowH);
-	cout << "Ratio : " << ratio << endl;
-
-	// Projection
+	// Choix de la matrice de projection
 	glMatrixMode(GL_PROJECTION);
 
-	// Resetting matrix
+	// Reinitialisation de la matrice
 	glLoadIdentity();
 
-	// Viewport
+	//Projection Orthographique
+	gluOrtho2D(0.0, windowW, 0.0, windowH);
+
+	// Gestion du viewport
 	glViewport(0, 0, windowW, windowH);
 
-	// Mise en place de la perspective
+	// Projection Perspective
 	gluPerspective(camera.getFocale(), 1.0, camera.getNear(), camera.getFar());
 
-	// Retourne a la pile modelview
+	// Retour a la pile modelview
 	glMatrixMode(GL_MODELVIEW);
 }
 
-// Fonction de gestion du clavier (touche relachee)
-void clavierUp(unsigned char key, int x, int y) {
-
-	// Que faire quand une touche est relachee
-	switch (key) {
-
-		// On arrete de strafer
+// Fonction de gestion du relachement d'une touche clavier
+void clavierUp(unsigned char key, int x, int y) 
+{
+	switch (key) 
+	{
+	// Arret du strafe
 	case 'q':
 	case 'd':
 	case 'Q':
@@ -164,30 +179,12 @@ void clavierUp(unsigned char key, int x, int y) {
 		camera.resetDeltaStrafe();
 		break;
 
-		// On arrete d'avance/reculer
+	// Arret de l'avance/recul
 	case 'z':
 	case 's':
 	case 'Z':
 	case 'S':
 		camera.resetDeltaMove();
-		break;
-	}
-}
-
-// Fonction de gestion du clavier (touche speciale relachee)
-void releaseSpecialKey(int key, int x, int y) {
-
-	switch (key) {
-		// On remet le delta deplacement a 0
-	case GLUT_KEY_UP:
-	case GLUT_KEY_DOWN:
-		camera.resetDeltaMove();
-		break;
-
-		// On remet le delta strafe a 0
-	case GLUT_KEY_RIGHT:
-	case GLUT_KEY_LEFT:
-		camera.resetDeltaStrafe();
 		break;
 	}
 }

@@ -9,6 +9,7 @@
 #include "FreeFlyCamera.h"
 #include "heightMap.h"
 #include "VBO.h"
+#include "InterfaceUtilisateur.h"
 
 using namespace std;
 
@@ -18,5 +19,6 @@ GLvoid clavierUp(unsigned char key, int x, int y);
 GLvoid deplacementSouris(int x, int y);
 GLvoid redimensionner(int w, int h);
 GLvoid releaseSpecialKey(int key, int x, int y);
+GLvoid deplacementSourisPassif(int x, int y);
 
 #endif //CALLBACKHANDLER_H

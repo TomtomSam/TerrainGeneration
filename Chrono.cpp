@@ -1,6 +1,7 @@
 #include "Chrono.h"
 #include <GL/glut.h>
 
+// CONSTRUCTOR
 Chrono::Chrono(void)
 {
 	last_time = glutGet(GLUT_ELAPSED_TIME);
@@ -8,19 +9,18 @@ Chrono::Chrono(void)
 	ellapsed_time = current_time - last_time;
 }
 
+// DESTRUCTOR
+Chrono::~Chrono(void){}
 
-Chrono::~Chrono(void)
-{
-}
-
-// Demarrer le chrono
+// METHODS
+// Demarrage du chrono
 void Chrono::Tic()
 {
 	current_time = glutGet(GLUT_ELAPSED_TIME);
 	last_time = current_time;
 }
 
-// Arreter le chrono
+// Arret du chrono
 void Chrono::Toc()
 {
 	current_time = glutGet(GLUT_ELAPSED_TIME);
