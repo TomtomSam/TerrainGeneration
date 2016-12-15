@@ -1,3 +1,6 @@
+#ifndef INTERFACEUTILISATEUR_H
+#define INTERFACEUTILISATEUR_H
+
 #include "heightMap.h"
 #include "VBO.h"
 #include "Bouton.h"
@@ -39,8 +42,12 @@ public:
 	void testSurvol(int x, int y, int windowW, int windowH);
 
 	void draw(int windowW, int windowH);
-
-	//Fonction appelée quand on click sur un bouton
+	
+	void reductionTaille();
+	void augmentationTaille();
+	void generation();
+	void renderModeSelection();
 	void action();
 };
 
+#endif // INTERFACEUTILISATEUR_H

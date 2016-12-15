@@ -24,12 +24,19 @@ Texture water;
 Texture grass;
 Texture ice;
 Texture sand;
+Texture snow;
 
 // Creation du chrono
 Chrono chrono;
 
 // Initialisation du Vertex Buffer Object
 VBO monVBO;
+
+// Initialisation des shaders
+Shader VS, FS, bumpVS, bumpFS; 
+Program prog, bumpprog;
+bool prog_activated = true;
+bool bumpprog_activated = true;
 
 // Creation et initialisation  de la camera
 FreeFlyCamera camera(static_cast<float>(maMap.getTaille()) / 100, 0.5*maMap.getTaille(), maMap.getTaille(), -0.5*maMap.getTaille(), 0, -0.5*maMap.getTaille(), 0.75*maMap.getTaille());
@@ -39,7 +46,8 @@ int windowW = 1000;
 int windowH = 550;
 int FPS = 0;
 
-InterfaceUtilisateur IU(&maMap, &monVBO,&camera);
+// Initialisation de l'interface utilisateur
+InterfaceUtilisateur IU(&maMap, &monVBO, &camera);
 
 // Definition de la fonction d'affichage
 GLvoid affichage()
@@ -57,10 +65,11 @@ GLvoid affichage()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluOrtho2D(0.0, windowW, 0.0, windowH);
+
 	// Affichage du compteur de FPS
 	maMap.compteurFPS(windowW, windowH, FPS);
 
-	//DESSIN DE LINTERFACE GRAPHIQUE
+	// Dessin de l'interface graphique
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	IU.draw(windowW,windowH);
 
@@ -79,17 +88,22 @@ GLvoid affichage()
 	glLoadIdentity();
 
 	// Definition de la position de la camera et ou elle regarde
-
 	gluLookAt(	camera.getcamPos().getVx(), camera.getcamPos().getVy(), camera.getcamPos().getVz(), 
 		camera.gettargetPos().getVx(), camera.gettargetPos().getVy(), camera.gettargetPos().getVz(), 
 		camera.getupWorld().getVx(), camera.getupWorld().getVy(), camera.getupWorld().getVz()	);
 
 	// Dessin de la map
+	if(prog_activated){prog.useProgram();}
+	else{glUseProgram(0);}
 	glPolygonMode(GL_FRONT_AND_BACK, maMap.getRenderMode());
 	monVBO.DrawBuffer();
+	glUseProgram(0);
 
 	// Dessin de l'ocean
+	if(bumpprog_activated){bumpprog.useProgram();}
+	else{glUseProgram(0);}
 	maMap.dessinOcean();
+	glUseProgram(0);
 
 	// Affichage a l'ecran
 	glFlush();
@@ -129,24 +143,21 @@ int main (int argc, char *argv[])
 	// Initialisation de GLEW
 	glewInit();
 
-	// Définition de la couleur d'effacement du framebuffer
-	//BLEU MINUIT
-	//glClearColor(0.0f, 0.2f, 0.4f, 0.0f);
+	// Definition de la couleur d'effacement du framebuffer
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 	// Activation du Z-buffer
 	glEnable(GL_DEPTH_TEST);
-	//Affichage du dessus de la map uniquement
-	glPolygonMode(GL_BACK, GL_FILL);
 
-	// Activation des textures
-	glEnable(GL_TEXTURE_2D);
+	// Affichage du dessus de la map uniquement
+	glPolygonMode(GL_BACK, GL_FILL);
 
 	// Chargement des textures
 	water.loadTexture("WATER.jpg");
 	sand.loadTexture("SAND.jpg");
 	ice.loadTexture("ICE.jpg");
 	grass.loadTexture("GRASS.jpg");
+	snow.loadTexture("SNOW.jpg");
 
 	// Initialisation de la map
 	maMap.initialisationAuto();
@@ -155,7 +166,7 @@ int main (int argc, char *argv[])
 	maMap.generateMatrix();
 
 	// Remplissage des vecteurs de data a envoyer au GPU
-	maMap.FillDataBuffersPosColors();
+	maMap.FillDataBuffersPosColorsTex();
 
 	// Remplissage du VBO
 	monVBO.FeedCol(maMap.getCol());
@@ -165,7 +176,7 @@ int main (int argc, char *argv[])
 
   // Reglages de la camera
 	camera.setFar(static_cast<float>(maMap.getTaille() * 2));
-  
+
 	// Definition des fonctions de callback
 	glutDisplayFunc(affichage);
 	glutKeyboardFunc(clavier);
@@ -175,106 +186,66 @@ int main (int argc, char *argv[])
 	glutReshapeFunc(redimensionner);
 	glutPassiveMotionFunc(deplacementSourisPassif);
 
-	// Calcul des mins et max des altitudes de la carte
-	float maxMin[2];
-	maMap.giveMaxes(maxMin);
-
-
-	// Calcul des mins et max des altitudes de la carte
-	float maxMin[2];
-	maMap.giveMaxes(maxMin);
-
-	// Creation des shaders et du program associe
-	Shader VS,FS; 
-	Program prog;
+	// Creation des shaders et du program associe a la map
 	VS.loadShader("vertexShader.vert", GL_VERTEX_SHADER);
 	FS.loadShader("fragmentShader.frag", GL_FRAGMENT_SHADER);
 	prog.createProgram();
 	prog.addShaderToProgram(&VS);
 	prog.addShaderToProgram(&FS);
 	prog.linkProgram(&VS, &FS);
+
+	// Creation des shaders et du program associe au bump mapping
+	bumpVS.loadShader("vertexBump.vert", GL_VERTEX_SHADER);
+	bumpFS.loadShader("fragmentBump.frag", GL_FRAGMENT_SHADER);
+	bumpprog.createProgram();
+	bumpprog.addShaderToProgram(&bumpVS);
+	bumpprog.addShaderToProgram(&bumpFS);
+	bumpprog.linkProgram(&bumpVS, &bumpFS);
+
+	// Assignation des variables des shaders (reglages multitexturing)
 	prog.useProgram();
-
-	// Assignation des variables des shaders
-	prog.setUniformf("maxHeight", maxMin[0]);
-	prog.setUniformf("minHeight", maxMin[1]);
-	prog.setUniformf("grassInf", maMap.getPosOcean()+20);
-	prog.setUniformf("grassSup", maMap.getPosOcean()+410);
-	prog.setUniformf("beachInf", maMap.getPosOcean()+1);
-	prog.setUniformf("beachSup", maMap.getPosOcean()+30);
-	prog.setUniformf("snowInf", maMap.getPosOcean()+400);
-	prog.setUniformf("waterSup", maMap.getPosOcean()+1);
-
-	prog.setUniformi("waterID", water.getTexture());
-	prog.setUniformi("grassID", grass.getTexture());
-	prog.setUniformi("iceID", ice.getTexture());
-	prog.setUniformi("sandID", sand.getTexture());
-	GLint texture, texture1, texture2, texture3;
-	glActiveTexture(GL_TEXTURE0 + water.getTexture());
-	glBindTexture(GL_TEXTURE_2D, water.getTexture());
-	texture = glGetUniformLocation(prog.getProgramID(), "tex_water");
-	glUniform1i(texture, 1);	
-	glActiveTexture(GL_TEXTURE0 + sand.getTexture());
-	glBindTexture(GL_TEXTURE_2D, sand.getTexture()); 
-	texture3 = glGetUniformLocation(prog.getProgramID(), "tex_sand");
-	glUniform1i(texture3, 2);	
-	glActiveTexture(GL_TEXTURE0 + ice.getTexture());
-	glBindTexture(GL_TEXTURE_2D, ice.getTexture()); 
-	texture2 = glGetUniformLocation(prog.getProgramID(), "tex_ice");
-	glUniform1i(texture2, 3);
-	glActiveTexture(GL_TEXTURE0 + grass.getTexture());
-	glBindTexture(GL_TEXTURE_2D, grass.getTexture());
-	texture1 = glGetUniformLocation(prog.getProgramID(), "tex_grass");
-	glUniform1i(texture1, 4);
-
-	//Min et Max des altitudes de la carte
 	float maxMin[2];
 	maMap.giveMaxes(maxMin);
+	float oc = maMap.getPosOcean();
+	float dis = maxMin[0]-oc;
 
-	// Creation des shaders et du program associe
-	Shader VS,FS; 
-	Program prog;
-	VS.loadShader("vertexShader.vert", GL_VERTEX_SHADER);
-	FS.loadShader("fragmentShader.frag", GL_FRAGMENT_SHADER);
-	prog.createProgram();
-	prog.addShaderToProgram(&VS);
-	prog.addShaderToProgram(&FS);
-	prog.linkProgram(&VS, &FS);
-	prog.useProgram();
-
-	//Assignation des variables des shaders
 	prog.setUniformf("maxHeight", maxMin[0]);
 	prog.setUniformf("minHeight", maxMin[1]);
-	prog.setUniformf("grassInf", (maxMin[0]-maxMin[1])*0.6);
-	prog.setUniformf("grassSup", (maxMin[0]-maxMin[1])*0.9);
-	prog.setUniformf("beachInf", (maxMin[0]-maxMin[1])*0.4);
-	prog.setUniformf("beachSup", (maxMin[0]-maxMin[1])*0.7);
-	prog.setUniformf("snowInf", (maxMin[0]-maxMin[1])*0.8);
-	prog.setUniformf("waterSup", (maxMin[0]-maxMin[1])*0.5);
+	prog.setUniformf("beachInf", oc);
+	prog.setUniformf("beachSup", maMap.getPosOcean()+dis*0.05);
+	prog.setUniformf("grassInf", maMap.getPosOcean()+dis*0.02);
+	prog.setUniformf("grassSup", maMap.getPosOcean()+dis*0.82);
+	prog.setUniformf("snowInf", maMap.getPosOcean()+dis*0.8);
+	prog.setUniformf("snowSup", maMap.getPosOcean()+dis*87);
+	prog.setUniformf("iceInf", maMap.getPosOcean()+dis*0.85);
 
-	prog.setUniformi("waterID", water.getTexture());
-	prog.setUniformi("grassID", grass.getTexture());
-	prog.setUniformi("iceID", ice.getTexture());
-	prog.setUniformi("sandID", sand.getTexture());
-	GLint texture, texture1, texture2, texture3;
+	GLint texture, texture1, texture2, texture3, texture4;
+	
+	bumpprog.useProgram();
 	glActiveTexture(GL_TEXTURE0 + water.getTexture());
 	glBindTexture(GL_TEXTURE_2D, water.getTexture());
-	texture = glGetUniformLocation(prog.getProgramID(), "tex_water");
-	glUniform1i(texture, 1);	
+	texture = glGetUniformLocation(bumpprog.getProgramID(), "bumptex");
+	glUniform1i(texture, water.getTexture());
+	bumpprog.setUniformi("bumpID", water.getTexture());
+		
+	prog.useProgram();
 	glActiveTexture(GL_TEXTURE0 + sand.getTexture());
 	glBindTexture(GL_TEXTURE_2D, sand.getTexture()); 
-	texture3 = glGetUniformLocation(prog.getProgramID(), "tex_sand");
-	glUniform1i(texture3, 2);	
+	texture1 = glGetUniformLocation(prog.getProgramID(), "tex_sand");
+	glUniform1i(texture1, sand.getTexture());
 	glActiveTexture(GL_TEXTURE0 + ice.getTexture());
 	glBindTexture(GL_TEXTURE_2D, ice.getTexture()); 
 	texture2 = glGetUniformLocation(prog.getProgramID(), "tex_ice");
-	glUniform1i(texture2, 3);
+	glUniform1i(texture2, ice.getTexture());
 	glActiveTexture(GL_TEXTURE0 + grass.getTexture());
 	glBindTexture(GL_TEXTURE_2D, grass.getTexture());
-	texture1 = glGetUniformLocation(prog.getProgramID(), "tex_grass");
-	glUniform1i(texture1, 4);
-
-
+	texture3 = glGetUniformLocation(prog.getProgramID(), "tex_grass");
+	glUniform1i(texture3, grass.getTexture());
+	glActiveTexture(GL_TEXTURE0 + snow.getTexture());
+	glBindTexture(GL_TEXTURE_2D, snow.getTexture());
+	texture4 = glGetUniformLocation(prog.getProgramID(), "tex_snow");
+	glUniform1i(texture4, snow.getTexture());
+	glUseProgram(0);
 
 	// Lancement de la boucle infinie GLUT
 	glutMainLoop();

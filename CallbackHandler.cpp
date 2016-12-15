@@ -13,27 +13,32 @@ extern int windowH;
 // Definition de la fonction gerant les interruptions clavier
 GLvoid clavier(unsigned char touche, int x, int y) 
 {
-	switch (touche) {
+	switch (touche) 
+	{
 	// Deplacement de la camera vers la gauche
 	case 'q':
 	case 'Q':
 		camera.incrementMouvement("deltaStrafe", '+');
 		break;
+
 	// Deplacement de la camera vers la droite
 	case 'd':
 	case 'D':
 		camera.incrementMouvement("deltaStrafe", '-');
 		break;
+
 	// Deplacement de la camera vers l'avant
 	case 'z':
 	case 'Z':
 		camera.incrementMouvement("deltaMove", '+');
 		break;
+
 	// Deplacement de la camera vers l'arriere
 	case 's':
 	case 'S':
 		camera.incrementMouvement("deltaMove", '-');
 		break;
+
 	// Rehaussage du seuil de l'ocean
 	case '+': 
 		maMap.setPosOcean(maMap.getPosOcean()+1);
@@ -42,6 +47,7 @@ GLvoid clavier(unsigned char touche, int x, int y)
 		monVBO.ActualizeColBuffer();
 		monVBO.ActualizePosBuffer();
 		break;
+
 	// Abaissement du seuil de l'ocean
 	case '-':
 		maMap.setPosOcean(maMap.getPosOcean() - 1);
@@ -50,6 +56,7 @@ GLvoid clavier(unsigned char touche, int x, int y)
 		monVBO.ActualizeColBuffer();
 		monVBO.ActualizePosBuffer();
 		break;
+
 	// Dilatation horizontale de la map
 	case 'm':
 	case 'M':
@@ -59,6 +66,7 @@ GLvoid clavier(unsigned char touche, int x, int y)
 		monVBO.ActualizeColBuffer();
 		monVBO.ActualizePosBuffer();
 		break;
+
 	// Compression horizontale de la map
 	case 'l':
 	case 'L':
@@ -118,19 +126,19 @@ void deplacementSouris(int x, int y)
 
 void deplacementSourisPassif(int x, int y)
 {
-	//Booléen permettant la comparaison du survol de bouton entre deux frame
+	//Booleen permettant la comparaison du survol de bouton entre deux frame
 	bool hoover = false;
 	bool PreviousHoover = IU.getSurvol();
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	//Test de présence dans un bouton
+	//Test de presence dans un bouton
 	 IU.testSurvol(x, y,windowW, windowH);
 	 hoover = IU.getSurvol();
 
 
-	//Réaffichage que si on quitte ou on rentre dans un bouton
+	//Reaffichage que si on quitte ou on rentre dans un bouton
 	if (hoover != PreviousHoover){ glutPostRedisplay();}
 	
 }
