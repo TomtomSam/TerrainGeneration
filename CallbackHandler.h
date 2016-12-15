@@ -11,7 +11,6 @@
 #include "VBO.h"
 #include "InterfaceUtilisateur.h"
 
-
 using namespace std;
 
 GLvoid clavier(unsigned char touche, int x, int y);

@@ -114,7 +114,7 @@ void heightMap::initialisationAuto(){
 	maxIndexColumn = static_cast<int>(pow(2, length));
 	maxIndexLine = maxIndexColumn;
 
-	// Initialisation des hauteurs des coins a zero
+  // Initialisation des hauteurs des coins a zero
 	setHeightMap(0, 0, new Point(0, 0, 0));
 	setHeightMap(0, maxIndexColumn, new Point(0, maxIndexColumn, 0));
 	setHeightMap(maxIndexLine, maxIndexColumn, new Point(maxIndexLine, maxIndexColumn, 0));
@@ -173,22 +173,22 @@ void heightMap::squareStep(int pas){
 			n=0;
 			if(x>=pas)
 			{
-				somme += heightMatrix[x-pas][y]->getHeight();
+				somme += heightMatrix[x - pas][y]->getHeight();
 				n++;
 			}
 			if(x+pas<h)
 			{
-				somme += heightMatrix[x+pas][y]->getHeight();
+				somme += heightMatrix[x + pas][y]->getHeight();
 				n++;
 			}
 			if(y>=pas)
 			{
-				somme += heightMatrix[x][y-pas]->getHeight();
+				somme += heightMatrix[x][y - pas]->getHeight();
 				n++;
 			}
 			if(y+pas<h)
 			{
-				somme += heightMatrix[x][y+pas]->getHeight();
+				somme += heightMatrix[x][y + pas]->getHeight();
 				n++;
 			}
 
@@ -198,6 +198,12 @@ void heightMap::squareStep(int pas){
 			heightMatrix[x][y]->setHeight((somme/n)+random);
 		}
 	}
+
+
+}
+
+float heightMap::getTaille(){
+	return static_cast<float>(pow(2, getLength()));
 }
 
 // Fonction d'implementation de l'algorithme de diamant carre
@@ -255,6 +261,13 @@ void heightMap::mapColor()
 	float maxes[2];
 	giveMaxes(maxes);
 	laRampe.Remplissage(maxes[0], posOcean);
+
+	//On recale l'oc�an en cas de dilatation
+	if (IsDilated)
+	{ 
+		IsDilated = false;
+		posOcean = static_cast<float>((maxes[0] - maxes[1])*0.3 + maxes[1]);
+	}
 
 	int indice = 0;
 
@@ -352,7 +365,6 @@ void heightMap::FillDataBuffersPosColorsTex()
 	// Remplissage strip par strip
 	for (int i = 0; i < taille; i += 2)
 	{
-
 		// Remplissage des strips allant vers la droite
 		for (int j = 0; j <= taille; j++)
 		{
@@ -608,6 +620,7 @@ void heightMap::FillDataBuffersColors()
 			colors.push_back(heightMatrix[i + 1][j]->getG());
 			colors.push_back(heightMatrix[i + 1][j]->getB());
 		}
+
 		// Le dernier point de chaque strip est rentré deux fois dans le vecteur pour faire le virage
 		// Remplissage des strips allant vers la gauche
 		for (j = taille; j >= 0; j--)
@@ -621,7 +634,6 @@ void heightMap::FillDataBuffersColors()
 			colors.push_back(heightMatrix[i + 2][j]->getB());
 		}
 	}
-
 	//Nouvelle position du Cache Misère
 	int nombreDePosMap = 3 * 2 * taille*(taille + 1);
 	//Suppression des anciennes données du cache misère
@@ -642,6 +654,7 @@ void heightMap::compteurFPS(int windowW, int windowH, int FPS)
 	if (FPS>55){ glColor3f(0.0f, 1.0f, 0.0f); }
 	else if (FPS<56 && FPS>29){ glColor3f(1.0f, 0.5f, 0.0f); }
 	else if (FPS<30){ glColor3f(1.0f, 0.0f, 0.0f); }
+
 
 	// Positionnement du texte
 	glRasterPos2i(10, windowH - 30);

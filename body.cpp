@@ -53,7 +53,6 @@ GLvoid affichage()
 	// Effacement du frame buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
 	// Choix de la projection orthographique pour le texte
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -74,13 +73,13 @@ GLvoid affichage()
 
 	// Mise en place de la perspective
 	camera.setFar(maMap.getTaille() * 2 * maMap.getDilatation());
-
 	gluPerspective(camera.getFocale(), 1.0, camera.getNear(), camera.getFar());
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
 	// Definition de la position de la camera et ou elle regarde
+
 	gluLookAt(	camera.getcamPos().getVx(), camera.getcamPos().getVy(), camera.getcamPos().getVz(), 
 		camera.gettargetPos().getVx(), camera.gettargetPos().getVy(), camera.gettargetPos().getVz(), 
 		camera.getupWorld().getVx(), camera.getupWorld().getVy(), camera.getupWorld().getVz()	);
@@ -227,6 +226,55 @@ int main (int argc, char *argv[])
 	glBindTexture(GL_TEXTURE_2D, grass.getTexture());
 	texture1 = glGetUniformLocation(prog.getProgramID(), "tex_grass");
 	glUniform1i(texture1, 4);
+
+	//Min et Max des altitudes de la carte
+	float maxMin[2];
+	maMap.giveMaxes(maxMin);
+
+	// Creation des shaders et du program associe
+	Shader VS,FS; 
+	Program prog;
+	VS.loadShader("vertexShader.vert", GL_VERTEX_SHADER);
+	FS.loadShader("fragmentShader.frag", GL_FRAGMENT_SHADER);
+	prog.createProgram();
+	prog.addShaderToProgram(&VS);
+	prog.addShaderToProgram(&FS);
+	prog.linkProgram(&VS, &FS);
+	prog.useProgram();
+
+	//Assignation des variables des shaders
+	prog.setUniformf("maxHeight", maxMin[0]);
+	prog.setUniformf("minHeight", maxMin[1]);
+	prog.setUniformf("grassInf", (maxMin[0]-maxMin[1])*0.6);
+	prog.setUniformf("grassSup", (maxMin[0]-maxMin[1])*0.9);
+	prog.setUniformf("beachInf", (maxMin[0]-maxMin[1])*0.4);
+	prog.setUniformf("beachSup", (maxMin[0]-maxMin[1])*0.7);
+	prog.setUniformf("snowInf", (maxMin[0]-maxMin[1])*0.8);
+	prog.setUniformf("waterSup", (maxMin[0]-maxMin[1])*0.5);
+
+	prog.setUniformi("waterID", water.getTexture());
+	prog.setUniformi("grassID", grass.getTexture());
+	prog.setUniformi("iceID", ice.getTexture());
+	prog.setUniformi("sandID", sand.getTexture());
+	GLint texture, texture1, texture2, texture3;
+	glActiveTexture(GL_TEXTURE0 + water.getTexture());
+	glBindTexture(GL_TEXTURE_2D, water.getTexture());
+	texture = glGetUniformLocation(prog.getProgramID(), "tex_water");
+	glUniform1i(texture, 1);	
+	glActiveTexture(GL_TEXTURE0 + sand.getTexture());
+	glBindTexture(GL_TEXTURE_2D, sand.getTexture()); 
+	texture3 = glGetUniformLocation(prog.getProgramID(), "tex_sand");
+	glUniform1i(texture3, 2);	
+	glActiveTexture(GL_TEXTURE0 + ice.getTexture());
+	glBindTexture(GL_TEXTURE_2D, ice.getTexture()); 
+	texture2 = glGetUniformLocation(prog.getProgramID(), "tex_ice");
+	glUniform1i(texture2, 3);
+	glActiveTexture(GL_TEXTURE0 + grass.getTexture());
+	glBindTexture(GL_TEXTURE_2D, grass.getTexture());
+	texture1 = glGetUniformLocation(prog.getProgramID(), "tex_grass");
+	glUniform1i(texture1, 4);
+
+
 
 	// Lancement de la boucle infinie GLUT
 	glutMainLoop();

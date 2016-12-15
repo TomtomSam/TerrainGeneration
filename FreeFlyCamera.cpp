@@ -52,7 +52,6 @@ float FreeFlyCamera::getFar(){return distant;}
 float FreeFlyCamera::getNear(){return close;}
 float FreeFlyCamera::getFocale(){return focale;}
 
-
 void FreeFlyCamera::resetParam()
 {
 	//Reset des param�tres de la cam�ra pour correspondre � la configuration constructeur

@@ -1,8 +1,8 @@
 #include "ColorRamp.h"
 
-/*La rampe de couleur est créée après la génération de la matrice
-des hauteurs et prend en entrée la différence entre la hauteur max et min
-de la map afin de faire correspondre une couleur à une altitude.*/
+/*La rampe de couleur est crÃ©Ã©e aprÃ¨s la gÃ©nÃ©ration de la matrice
+des hauteurs et prend en entrÃ©e la diffÃ©rence entre la hauteur max et min
+de la map afin de faire correspondre une couleur Ã  une altitude.*/
 
 // METHODS
 void ColorRamp::Remplissage(float HauteurMax, float posOcean)
@@ -15,7 +15,7 @@ void ColorRamp::Remplissage(float HauteurMax, float posOcean)
 	float PLAINE_R =146;
 	float PLAINE_G =208;
 	float PLAINE_B =80;
-	// HAUTE PLAINE vert foncé
+	// HAUTE PLAINE vert foncÃ©
 	float HPLAINE_R =24;
 	float HPLAINE_G =122;
 	float HPLAINE_B =29;
@@ -23,7 +23,7 @@ void ColorRamp::Remplissage(float HauteurMax, float posOcean)
 	float BMONT_R =66;
 	float BMONT_G =39;
 	float BMONT_B =7;
-	// ROCAILLE gris foncé
+	// ROCAILLE gris foncÃ©
 	float ROCK =125;
 	// NEIGE blanc
 	float NEIGE =255;

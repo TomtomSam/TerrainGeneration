@@ -34,14 +34,6 @@ GLvoid clavier(unsigned char touche, int x, int y)
 	case 'S':
 		camera.incrementMouvement("deltaMove", '-');
 		break;
-		/*case 'h': // shader activate
-		case 'H':
-		glUseProgram(prog.getProgramID());
-		break;
-		case 'y': // shader deactivate
-		case 'Y':
-		glUseProgram(0);
-		break;*/ 
 	// Rehaussage du seuil de l'ocean
 	case '+': 
 		maMap.setPosOcean(maMap.getPosOcean()+1);
@@ -76,6 +68,7 @@ GLvoid clavier(unsigned char touche, int x, int y)
 		monVBO.ActualizeColBuffer();
 		monVBO.ActualizePosBuffer();
 		break;
+
 	// Quitter l'application
 	case 27:
 		monVBO.DestroyVBO();
