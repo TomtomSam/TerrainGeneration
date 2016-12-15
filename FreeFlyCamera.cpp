@@ -52,6 +52,38 @@ float FreeFlyCamera::getFar(){return distant;}
 float FreeFlyCamera::getNear(){return close;}
 float FreeFlyCamera::getFocale(){return focale;}
 
+
+void FreeFlyCamera::resetParam()
+{
+	//Reset des param�tres de la cam�ra pour correspondre � la configuration constructeur
+	deltaTheta = 0.0f;
+	deltaPhi = 0.0f;
+	deltaMove = 0.0f;
+	deltaStrafe = 0.0f;
+	xOrigin = -1;
+	yOrigin = -1;
+
+	forwardView = targetPos;
+	rightView = upWorld.crossProduct(forwardView);
+	targetPos = camPos + forwardView;
+	angleTheta = static_cast<float>(0.5*M_PI);
+	anglePhi = static_cast<float>(0.3*M_PI);
+}
+
+
+void FreeFlyCamera::setcamPos(float camPosX, float camPosY, float camPosZ)
+{
+	camPos.setVx(camPosX);
+	camPos.setVy(camPosY);
+	camPos.setVz(camPosZ);
+}
+void FreeFlyCamera::settargetPos(float atPosX, float atPosY, float atPosZ)
+{
+	targetPos.setVx(atPosX);
+	targetPos.setVy(atPosY);
+	targetPos.setVz(atPosZ);
+}
+
 // METHODS
 // Fonction d'incrementation du mouvement de la camera
 void FreeFlyCamera::incrementMouvement(string nom, char signe)

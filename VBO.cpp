@@ -2,9 +2,9 @@
 using namespace std;
 
 // FEEDERS
-void VBO::FeedPos(vector<float> _pos){ pos = _pos; }
-void VBO::FeedCol(vector<float> _col){ col = _col; }
-void VBO::FeedTex(vector<float> _tex){ tex = _tex; }
+void VBO::FeedPos(vector<float> _pos){ pos.clear(); pos = _pos; }
+void VBO::FeedCol(vector<float> _col){ col.clear(); col = _col; }
+void VBO::FeedTex(vector<float> _tex){ tex.clear(); tex = _tex; }
 
 // METHODS
 // Fonction de construction du VBO
@@ -23,7 +23,7 @@ void VBO::BuildBuffer()
 	// Bindage du buffer
 	glBindBuffer(GL_ARRAY_BUFFER, bufferPos);
 
-	// Allocation l'espace necessaire en memoire (2^n strips ‡ tracer et chaque strip contient 2*(2^n+1) sommets)
+	// Allocation l'espace necessaire en memoire (2^n strips √† tracer et chaque strip contient 2*(2^n+1) sommets)
 	glBufferData(GL_ARRAY_BUFFER,                   // Cible 
 		pos.size() *sizeof pos[0],					// Taille des positions
 		NULL,
@@ -124,7 +124,7 @@ void VBO::ActualizePosBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, bufferPos);
 	GLvoid *pos_vbo = NULL;
 
-	//On obtient la position mÈmoire de nos data
+  //On obtient la position m√©moire de nos data
 	pos_vbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
 	// On transfert les nouvelles data au bon endroit 
@@ -140,15 +140,29 @@ void VBO::ActualizeColBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, bufferCol);
 	GLvoid *col_vbo = NULL;
 
-	//On obtient la position mÈmoire de nos data
+	//On obtient la position m√©moire de nos data
 	col_vbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
 	// On transfert les nouvelles data au bon endroit 
 	memcpy(col_vbo, &col[0], col.size()*sizeof col[0]);
 
 	glUnmapBuffer(GL_ARRAY_BUFFER);
-
 	col_vbo = NULL;
+}
+
+void VBO::ActualizeTexBuffer()
+{
+	glBindBuffer(GL_ARRAY_BUFFER, bufferTex);
+	GLvoid *tex_vbo = NULL;
+
+	//On obtient la position m√©moire de nos data
+	tex_vbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+
+	// On transfert les nouvelles data au bon endroit 
+	memcpy(tex_vbo, &tex[0], tex.size()*sizeof tex[0]);
+
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	tex_vbo = NULL;
 }
 
 // Fonction de liberation de la place du VBO en memoire

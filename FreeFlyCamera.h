@@ -60,6 +60,9 @@ public:
 	Vector3D gettargetPos();
 	Vector3D getupWorld();
 
+	void setcamPos(float camPosX, float camPosY, float camPosZ);
+	void settargetPos(float atPosX, float atPosY, float atPosZ);
+	void resetParam();
 	void resetDeltaMove();
 	void resetDeltaStrafe();
 	void incrementMouvement(string nom,char signe);//+ ou - moveSensitivity

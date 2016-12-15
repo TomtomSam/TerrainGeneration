@@ -40,7 +40,5 @@ void Program::setUniformf(const GLchar* name, GLfloat value){
 	glUniform1f(loc, value);
 }
 
-
-
 // GETTERS
 GLuint Program::getProgramID(){return programID;}

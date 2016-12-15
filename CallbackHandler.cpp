@@ -5,6 +5,10 @@ using namespace std;
 extern FreeFlyCamera camera;
 extern VBO monVBO;
 extern heightMap maMap;
+extern InterfaceUtilisateur IU;
+extern int windowW;
+extern int windowH;
+
 
 // Definition de la fonction gerant les interruptions clavier
 GLvoid clavier(unsigned char touche, int x, int y) 
@@ -30,21 +34,6 @@ GLvoid clavier(unsigned char touche, int x, int y)
 	case 'S':
 		camera.incrementMouvement("deltaMove", '-');
 		break;
-	// Affichage des polygones remplis
-	case 'p': 
-	case 'P':
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		break;
-	// Affichage en mode fil de fer
-	case 'o': 
-	case 'O':
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		break;
-	// Affichage en nuage de points
-	case 'i': 
-	case 'I':
-		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-		break;
 		/*case 'h': // shader activate
 		case 'H':
 		glUseProgram(prog.getProgramID());
@@ -57,18 +46,17 @@ GLvoid clavier(unsigned char touche, int x, int y)
 	case '+': 
 		maMap.setPosOcean(maMap.getPosOcean()+1);
 		monVBO.FeedCol(maMap.getCol());
+		monVBO.FeedPos(maMap.getPos());
 		monVBO.ActualizeColBuffer();
+		monVBO.ActualizePosBuffer();
 		break;
 	// Abaissement du seuil de l'ocean
 	case '-':
 		maMap.setPosOcean(maMap.getPosOcean() - 1);
 		monVBO.FeedCol(maMap.getCol());
+		monVBO.FeedPos(maMap.getPos());
 		monVBO.ActualizeColBuffer();
-		break;
-	// Ecriture du fichier .obj associe a la map
-	case 'w':
-	case 'W':
-		maMap.ecrireFichierObj();
+		monVBO.ActualizePosBuffer();
 		break;
 	// Dilatation horizontale de la map
 	case 'm':
@@ -112,6 +100,12 @@ GLvoid souris(int bouton, int etat, int x, int y)
 		{	
 			// Stockage des positions de la souris
 			camera.setBouttonDown(x,y);
+
+			//Detection d'évenement dans l'interface utilisateur
+			if (IU.getSurvol())
+			{
+				IU.action();
+			}
 		}
 	}
 }
@@ -121,19 +115,40 @@ void deplacementSouris(int x, int y)
 {
 	bool affiche = false;
 
-	// Actualisation des vecteurs de la cam�ra
+	// Actualisation des vecteurs de la caméra
 	affiche = camera.ActualiserCamera(x, y);
 
 	// Reaffichage si le clic de la souris est actif
 	if (affiche){ glutPostRedisplay();}
 }
 
-// Callback de redimensionnement de la fen�tre
+
+void deplacementSourisPassif(int x, int y)
+{
+	//Booléen permettant la comparaison du survol de bouton entre deux frame
+	bool hoover = false;
+	bool PreviousHoover = IU.getSurvol();
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	//Test de présence dans un bouton
+	 IU.testSurvol(x, y,windowW, windowH);
+	 hoover = IU.getSurvol();
+
+
+	//Réaffichage que si on quitte ou on rentre dans un bouton
+	if (hoover != PreviousHoover){ glutPostRedisplay();}
+	
+}
+
+// Callback de redimensionnement de la fenêtre
 GLvoid redimensionner(int _windowW, int _windowH)
 {
 	// Stockage des dimensions de la fenetres
-	int windowW = _windowW;
-	int windowH = _windowH;
+
+	windowW = _windowW;
+	windowH = _windowH;
 	
 	// Gestion des divisions par 0
 	if(windowH==0)
@@ -145,10 +160,13 @@ GLvoid redimensionner(int _windowW, int _windowH)
 	// Reinitialisation de la matrice
 	glLoadIdentity();
 
+	//Projection Orthographique
+	gluOrtho2D(0.0, windowW, 0.0, windowH);
+
 	// Gestion du viewport
 	glViewport(0, 0, windowW, windowH);
 
-	// Mise en place de la perspective
+	// Projection Perspective
 	gluPerspective(camera.getFocale(), 1.0, camera.getNear(), camera.getFar());
 
 	// Retour a la pile modelview
