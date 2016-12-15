@@ -1,3 +1,6 @@
+#ifndef LABEL_H
+#define LABEL_H
+
 #include <string>
 #include <GL/glew.h>
 #include <GL/glut.h>
@@ -23,8 +26,8 @@ public:
 	string getLabel();
 	int getLargeur();
 	
-	//Méthodes
 	void draw(int windowW, int windowH);
 	
 };
 
+#endif // LABEL_H

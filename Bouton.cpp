@@ -1,6 +1,6 @@
 #include "Bouton.h"
 
-
+// CONSTRUCTOR
 Bouton::Bouton(int _posX, int _posY, string _label)
 {
 	posX = _posX;
@@ -8,32 +8,29 @@ Bouton::Bouton(int _posX, int _posY, string _label)
 	hauteur = 30;
 	label = _label;
 	survol = false;
-
-	//Marge pour le Label
 	largeur = 40;
-	
-	//Ajustement de la largeur pour acceuillir le label
-	//20 pixels pour une majuscule et 10 pour une minuscule
+
+	// Ajustement de la largeur pour acceuillir le label
 	for (string::iterator i = label.begin(); i != label.end(); ++i)
 	{
 		char c = *i;
-		if (isupper(c)){ largeur += 20; }
-		else{ largeur += 10; }
+
+		// Augmentation de la largeur de 20 pixels par majuscule
+		if (isupper(c)){ largeur += 20; } 
+
+		// Augmentation de la largeur de 10 pixels par miniscule
+		else{ largeur += 10; } 
 	}
-
-	
-	
 }
 
+Bouton::~Bouton(){}
 
-Bouton::~Bouton()
-{
-}
-
-
+// GETTERS
 bool Bouton::getSurvol(){ return survol; }
 int Bouton::getLargeur(){ return largeur; }
 
+// METHODS
+// Dessin d'un label
 void Bouton::draw(int windowW,int windowH)
 {
 	// Affichage du texte
@@ -44,11 +41,13 @@ void Bouton::draw(int windowW,int windowH)
 
 	//Couleur du texte
 	glColor3f(0,0,0);
+
 	// Positionnement du texte
 	glRasterPos2i(20,  8);
+
 	// Choix Police
 	void * font = GLUT_BITMAP_TIMES_ROMAN_24;
-	
+
 	// Ecriture du texte
 	for (string::iterator i = label.begin(); i != label.end(); ++i)
 	{
@@ -56,7 +55,7 @@ void Bouton::draw(int windowW,int windowH)
 		glutBitmapCharacter(font, c);
 	}
 
-	//Mise en valeur des bords en cas de survol
+	// Mise en valeur des bords en cas de survol
 	if (survol)
 	{
 		glLineWidth(4.0f);
@@ -70,7 +69,7 @@ void Bouton::draw(int windowW,int windowH)
 		glLineWidth(1.0f);
 	}
 
-	//Dessin du fond
+	// Dessin du fond
 	glBegin(GL_QUADS);
 	glColor3f(0.8,0.9,0.8);
 	glVertex2i(0, 0);
@@ -78,14 +77,12 @@ void Bouton::draw(int windowW,int windowH)
 	glVertex2i(largeur, hauteur);
 	glVertex2i(0, hauteur);
 	glEnd();
-
-	
-
 }
 
+// Detection du survol du bouton par la souris
 bool Bouton::isMouseInMe(int x, int y,int windowW,int windowH)
 {
-	if (x < (windowW - posX+largeur) && x>(windowW-posX) && y>(posY-hauteur) && y <posY)
+	if ((x<(windowW-posX+largeur)) && (x>(windowW-posX)) && (y>(posY-hauteur)) && (y<posY))
 	{
 		survol = true;
 	}

@@ -1,3 +1,6 @@
+#ifndef BOUTON_H
+#define BOUTON_H
+
 #include <string>
 #include <GL/glew.h>
 #include <GL/glut.h>
@@ -20,12 +23,12 @@ public:
 	Bouton(int _posX,int _posY, string _label);
 	~Bouton();
 
-
 	bool getSurvol();
 	int getLargeur();
-	//Méthodes
+
 	void draw(int windowW, int windowH);
 	bool isMouseInMe(int x, int y, int windowW, int windowH);
 
 };
 
+#endif // BOUTON_H
