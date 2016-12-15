@@ -101,8 +101,7 @@ GLvoid souris(int bouton, int etat, int x, int y)
 			// Stockage des positions de la souris
 			camera.setBouttonDown(x,y);
 
-
-			//Detection d'évenement dans l'interface utilisateur
+			//Detection d'Ã©venement dans l'interface utilisateur
 			if (IU.getSurvol())
 			{
 				IU.action();
@@ -116,37 +115,38 @@ void deplacementSouris(int x, int y)
 {
 	bool affiche = false;
 
-	// Actualisation des vecteurs de la caméra
+	// Actualisation des vecteurs de la camÃ©ra
 	affiche = camera.ActualiserCamera(x, y);
 
 	// Reaffichage si le clic de la souris est actif
 	if (affiche){ glutPostRedisplay();}
 }
 
+
 void deplacementSourisPassif(int x, int y)
 {
-	//Booléen permettant la comparaison du survol de bouton entre deux frame
+	//BoolÃ©en permettant la comparaison du survol de bouton entre deux frame
 	bool hoover = false;
 	bool PreviousHoover = IU.getSurvol();
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	//Test de présence dans un bouton
+	//Test de prÃ©sence dans un bouton
 	 IU.testSurvol(x, y,windowW, windowH);
 	 hoover = IU.getSurvol();
 
 
-	//Réaffichage que si on quitte ou on rentre dans un bouton
+	//RÃ©affichage que si on quitte ou on rentre dans un bouton
 	if (hoover != PreviousHoover){ glutPostRedisplay();}
 	
 }
 
-
-// Callback de redimensionnement de la fenêtre
+// Callback de redimensionnement de la fenÃªtre
 GLvoid redimensionner(int _windowW, int _windowH)
 {
 	// Stockage des dimensions de la fenetres
+
 	windowW = _windowW;
 	windowH = _windowH;
 	

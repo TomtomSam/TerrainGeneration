@@ -44,8 +44,6 @@ Vector3D FreeFlyCamera::getcamPos(){return camPos;}
 Vector3D FreeFlyCamera::gettargetPos(){ return targetPos; }
 Vector3D FreeFlyCamera::getupWorld(){ return upWorld; }
 
-
-
 // SETTERS
 void FreeFlyCamera::setMoveSensitivity(float MoveSensitivity){ moveSensitivity = MoveSensitivity; }
 void FreeFlyCamera::setMouseSensitivity(float MouseSensitivity){ mouseRotSensitivity = MouseSensitivity; }
@@ -53,9 +51,11 @@ void FreeFlyCamera::setFar(float _far){ distant = _far; }
 float FreeFlyCamera::getFar(){return distant;}
 float FreeFlyCamera::getNear(){return close;}
 float FreeFlyCamera::getFocale(){return focale;}
+
+
 void FreeFlyCamera::resetParam()
 {
-	//Reset des paramètres de la caméra pour correspondre à la configuration constructeur
+	//Reset des paramï¿½tres de la camï¿½ra pour correspondre ï¿½ la configuration constructeur
 	deltaTheta = 0.0f;
 	deltaPhi = 0.0f;
 	deltaMove = 0.0f;

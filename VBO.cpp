@@ -23,7 +23,7 @@ void VBO::BuildBuffer()
 	// Bindage du buffer
 	glBindBuffer(GL_ARRAY_BUFFER, bufferPos);
 
-	// Allocation l'espace necessaire en memoire (2^n strips à tracer et chaque strip contient 2*(2^n+1) sommets)
+	// Allocation l'espace necessaire en memoire (2^n strips Ã  tracer et chaque strip contient 2*(2^n+1) sommets)
 	glBufferData(GL_ARRAY_BUFFER,                   // Cible 
 		pos.size() *sizeof pos[0],					// Taille des positions
 		NULL,
@@ -68,7 +68,8 @@ void VBO::BuildBuffer()
 		glEnableClientState(GL_COLOR_ARRAY);
 	}
 
-	//TEXTURE
+	//TEXTURES
+
 	// Creation d'un objet tampon et recuperation de son identifiant
 	glGenBuffers(1, &bufferTex);
 
@@ -123,7 +124,7 @@ void VBO::ActualizePosBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, bufferPos);
 	GLvoid *pos_vbo = NULL;
 
-	//On obtient la position mémoire de nos data
+  //On obtient la position mÃ©moire de nos data
 	pos_vbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
 	// On transfert les nouvelles data au bon endroit 
@@ -139,7 +140,7 @@ void VBO::ActualizeColBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, bufferCol);
 	GLvoid *col_vbo = NULL;
 
-	//On obtient la position mémoire de nos data
+	//On obtient la position mÃ©moire de nos data
 	col_vbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
 	// On transfert les nouvelles data au bon endroit 
@@ -154,7 +155,7 @@ void VBO::ActualizeTexBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, bufferTex);
 	GLvoid *tex_vbo = NULL;
 
-	//On obtient la position mémoire de nos data
+	//On obtient la position mÃ©moire de nos data
 	tex_vbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
 	// On transfert les nouvelles data au bon endroit 
@@ -163,6 +164,7 @@ void VBO::ActualizeTexBuffer()
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	tex_vbo = NULL;
 }
+
 // Fonction de liberation de la place du VBO en memoire
 void VBO::DestroyVBO()
 {

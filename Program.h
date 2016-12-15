@@ -14,8 +14,8 @@ public:
 	GLuint getProgramID();
 	void createProgram();
 	void deleteProgram();
-
-
+	void setUniformi(const GLchar* name, GLint value);
+	void setUniformf(const GLchar* name, GLfloat value);
 
 private:
 	GLuint programID; // ID of program

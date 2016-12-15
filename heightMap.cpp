@@ -31,7 +31,7 @@ void heightMap::setPosOcean(float _pos)
 {
 	float maxes[2];
 	giveMaxes(maxes);
-	//Limitation de l'océan entre les bornes de la map
+	//Limitation de l'ocÃ©an entre les bornes de la map
 	if (_pos<maxes[0] && _pos>maxes[1])
 	{
 		posOcean = _pos;
@@ -328,6 +328,7 @@ void heightMap::ecrireFichierObj(){
 }
 
 // Fonction de remplissage du VBO
+
 void heightMap::FillDataBuffersPosColorsTex()
 {
 	int taille = static_cast<int>(pow(2, length));
@@ -335,7 +336,7 @@ void heightMap::FillDataBuffersPosColorsTex()
 	vector<float> tex1, tex2, tex3, tex4;
 	int factor = 1/stride;
 
-	//Sécutrité pour les map de taille 1,2 et 3.
+	//SÃ©cutritÃ© pour les map de taille 1,2 et 3.
 	if (factor == 0){ factor = 1; }
 
 	Chrono chrono;
@@ -390,7 +391,7 @@ void heightMap::FillDataBuffersPosColorsTex()
 			tex4.push_back((j%factor)*stride);
 		}
 
-		// Le dernier point de chaque strip est rentré deux fois dans le vecteur pour faire le virage
+		// Le dernier point de chaque strip est rentrÃ© deux fois dans le vecteur pour faire le virage
 		// Remplissage des strips allant vers la gauche
 		for (int j = taille; j >= 0; j--)
 		{
@@ -435,7 +436,7 @@ void heightMap::FillDataBuffersPosColorsTex()
 	tex+=tex3;
 	tex+=tex4;
 
-	//Ajout des positions du Cache Misère
+	//Ajout des positions du Cache MisÃ¨re
 	FillDataPosCacheMisere();
 
 	chrono.Toc();
@@ -480,22 +481,22 @@ void heightMap::FillDataBuffersPos()
 		}
 	}
 
-	//Ajout du Cache Misère
+	//Ajout du Cache MisÃ¨re
 	FillDataPosCacheMisere();
 }
 
 void heightMap::FillDataPosCacheMisere()
 	{
 
-		//Ajout du Cache Misère dans le vecteur de Pos
+		//Ajout du Cache MisÃ¨re dans le vecteur de Pos
 
-		//Répétition du dernier point de la map pour éviter de tracer le triangle indésirable de la strip
+		//RÃ©pÃ©tition du dernier point de la map pour Ã©viter de tracer le triangle indÃ©sirable de la strip
 		pos.push_back(taille*dilatation);
 		pos.push_back(heightMatrix[taille][0]->getHeight());
 		pos.push_back(0);
 
 
-		//Récupération de l'altitude minimale
+		//RÃ©cupÃ©ration de l'altitude minimale
 		float maxes[2];
 		giveMaxes(maxes);
 		// En haut
@@ -607,7 +608,7 @@ void heightMap::FillDataBuffersColors()
 			colors.push_back(heightMatrix[i + 1][j]->getG());
 			colors.push_back(heightMatrix[i + 1][j]->getB());
 		}
-		// Le dernier point de chaque strip est rentré deux fois dans le vecteur pour faire le virage
+		// Le dernier point de chaque strip est rentrÃ© deux fois dans le vecteur pour faire le virage
 		// Remplissage des strips allant vers la gauche
 		for (j = taille; j >= 0; j--)
 		{
@@ -621,11 +622,11 @@ void heightMap::FillDataBuffersColors()
 		}
 	}
 
-	//Nouvelle position du Cache Misère
+	//Nouvelle position du Cache MisÃ¨re
 	int nombreDePosMap = 3 * 2 * taille*(taille + 1);
-	//Suppression des anciennes données du cache misère
+	//Suppression des anciennes donnÃ©es du cache misÃ¨re
 	pos.erase(pos.begin() + nombreDePosMap, pos.end());
-	//Ajout du Cache Misère dans le Data Pos
+	//Ajout du Cache MisÃ¨re dans le Data Pos
 	FillDataPosCacheMisere();
 
 }
@@ -702,7 +703,6 @@ void heightMap::dessinOcean()
 	glEnd();
 }
 
-
 // CONSTRUCTORS
 heightMap::heightMap(){
 	setLength(0);
@@ -725,7 +725,6 @@ heightMap::heightMap(){
 }
 
 heightMap::heightMap(int size){
-
 	if (size > 11){ size = 11; }
 	if (size < 1){ size = 1; }
 
