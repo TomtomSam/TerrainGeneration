@@ -35,8 +35,6 @@ VBO monVBO;
 // Initialisation des shaders
 Shader VS, FS, bumpVS, bumpFS; 
 Program prog, bumpprog;
-bool prog_activated = true;
-bool bumpprog_activated = true;
 
 // Creation et initialisation  de la camera
 FreeFlyCamera camera(static_cast<float>(maMap.getTaille()) / 100, 0.5*maMap.getTaille(), maMap.getTaille(), -0.5*maMap.getTaille(), 0, -0.5*maMap.getTaille(), 0.75*maMap.getTaille());
@@ -93,14 +91,14 @@ GLvoid affichage()
 		camera.getupWorld().getVx(), camera.getupWorld().getVy(), camera.getupWorld().getVz()	);
 
 	// Dessin de la map
-	if(prog_activated){prog.useProgram();}
+	if(IU.getRenderMode()<3){prog.useProgram();}
 	else{glUseProgram(0);}
 	glPolygonMode(GL_FRONT_AND_BACK, maMap.getRenderMode());
 	monVBO.DrawBuffer();
 	glUseProgram(0);
 
 	// Dessin de l'ocean
-	if(bumpprog_activated){bumpprog.useProgram();}
+	if(IU.getRenderMode()<4){prog.useProgram();}
 	else{glUseProgram(0);}
 	maMap.dessinOcean();
 	glUseProgram(0);
