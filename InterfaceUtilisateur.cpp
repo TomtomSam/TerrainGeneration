@@ -1,8 +1,5 @@
 #include "InterfaceUtilisateur.h"
 
-extern bool prog_activated;
-extern bool bumpprog_activated;
-
 // CONSTRUCTOR
 InterfaceUtilisateur::InterfaceUtilisateur(heightMap* _maMap, VBO* _monVBO,FreeFlyCamera* _maCamera)
 {
@@ -30,6 +27,7 @@ InterfaceUtilisateur::~InterfaceUtilisateur(){}
 // GETTERS
 bool InterfaceUtilisateur::getSurvol(){ return survolBouton; }
 Label* InterfaceUtilisateur::getLabel(int i){ return labels[i]; }
+int InterfaceUtilisateur::getRenderMode(){ return renderMode; }
 
 // METHODS
 // Ajout d'un bouton a l'interface utilisateur
@@ -177,8 +175,6 @@ void InterfaceUtilisateur::renderModeSelection()
 	// Affichage des polygones pleins
 	case 0 :
 		maMap->setRenderMode(GL_FILL);
-		prog_activated = true;
-		bumpprog_activated = true;
 		break;
 
 	// Affichage en mode fil de fer
@@ -193,11 +189,9 @@ void InterfaceUtilisateur::renderModeSelection()
 	// Affichage sans le shader de la heightmap
 	case 3 :
 		maMap->setRenderMode(GL_FILL);
-		prog_activated = false;
 		break;
 	// Affichage sans le shader de l'ocean
 	case 4 :
-		bumpprog_activated = false;
 		break;
 	// Cas par defaut
 	default :

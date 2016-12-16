@@ -35,6 +35,7 @@ public:
 
 	bool getSurvol();
 	Label* getLabel(int i);
+	int getRenderMode();
 
 	void ajouterBouton(Bouton* newBut);
 	void ajouterLabel(Label* newLab);
