@@ -20,16 +20,6 @@ void Program::linkProgram(Shader* shader1, Shader* shader2){
 	glLinkProgram(programID);
 }
 
-// Fonction d'utilisation d'un program donne
-void Program::useProgram(){glUseProgram(programID);}
-
-// Fonction de creation d'un program
-void Program::createProgram(){programID = glCreateProgram();}
-
-// Fonction de liberation de la memoire consommee par le program
-void Program::deleteProgram(){glDeleteProgram(programID);}
-
-// SETTERS
 void Program::setUniformi(const GLchar* name, GLint value){
 	GLint loc = glGetUniformLocation(programID, name);
 	glUniform1i(loc, value);
@@ -40,5 +30,7 @@ void Program::setUniformf(const GLchar* name, GLfloat value){
 	glUniform1f(loc, value);
 }
 
-// GETTERS
+void Program::useProgram(){glUseProgram(programID);}
 GLuint Program::getProgramID(){return programID;}
+void Program::createProgram(){programID = glCreateProgram();}
+void Program::deleteProgram(){glDeleteProgram(programID);}

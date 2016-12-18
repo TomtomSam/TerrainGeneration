@@ -1,3 +1,7 @@
+#ifndef BOUTON_H
+#define BOUTON_H
+
+#include "IUobject.h"
 #include <string>
 #include <GL/glew.h>
 #include <GL/glut.h>
@@ -5,27 +9,18 @@
 
 using namespace std;
 
-class Bouton
+class Bouton : public IUobject
 {
 private:
-	int posX;
-	int posY;
-	int hauteur;
-	int largeur;
-	bool survol;
-	string label;
 	
 
 public:
 	Bouton(int _posX,int _posY, string _label);
 	~Bouton();
 
-
-	bool getSurvol();
-	int getLargeur();
-	//Méthodes
-	void draw(int windowW, int windowH);
-	bool isMouseInMe(int x, int y, int windowW, int windowH);
+	virtual void draw(int windowW, int windowH);
+	virtual bool isMouseInMe(int x, int y, int windowW, int windowH);
 
 };
 
+#endif // BOUTON_H

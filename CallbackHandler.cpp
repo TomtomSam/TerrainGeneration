@@ -13,69 +13,32 @@ extern int windowH;
 // Definition de la fonction gerant les interruptions clavier
 GLvoid clavier(unsigned char touche, int x, int y) 
 {
-	switch (touche) {
+	switch (touche) 
+	{
 	// Deplacement de la camera vers la gauche
 	case 'q':
 	case 'Q':
 		camera.incrementMouvement("deltaStrafe", '+');
 		break;
+
 	// Deplacement de la camera vers la droite
 	case 'd':
 	case 'D':
 		camera.incrementMouvement("deltaStrafe", '-');
 		break;
+
 	// Deplacement de la camera vers l'avant
 	case 'z':
 	case 'Z':
 		camera.incrementMouvement("deltaMove", '+');
 		break;
+
 	// Deplacement de la camera vers l'arriere
 	case 's':
 	case 'S':
 		camera.incrementMouvement("deltaMove", '-');
 		break;
-		/*case 'h': // shader activate
-		case 'H':
-		glUseProgram(prog.getProgramID());
-		break;
-		case 'y': // shader deactivate
-		case 'Y':
-		glUseProgram(0);
-		break;*/ 
-	// Rehaussage du seuil de l'ocean
-	case '+': 
-		maMap.setPosOcean(maMap.getPosOcean()+1);
-		monVBO.FeedCol(maMap.getCol());
-		monVBO.FeedPos(maMap.getPos());
-		monVBO.ActualizeColBuffer();
-		monVBO.ActualizePosBuffer();
-		break;
-	// Abaissement du seuil de l'ocean
-	case '-':
-		maMap.setPosOcean(maMap.getPosOcean() - 1);
-		monVBO.FeedCol(maMap.getCol());
-		monVBO.FeedPos(maMap.getPos());
-		monVBO.ActualizeColBuffer();
-		monVBO.ActualizePosBuffer();
-		break;
-	// Dilatation horizontale de la map
-	case 'm':
-	case 'M':
-		maMap.setDilatation(maMap.getDilatation() + 0.1);	
-		monVBO.FeedCol(maMap.getCol());
-		monVBO.FeedPos(maMap.getPos());
-		monVBO.ActualizeColBuffer();
-		monVBO.ActualizePosBuffer();
-		break;
-	// Compression horizontale de la map
-	case 'l':
-	case 'L':
-		maMap.setDilatation(maMap.getDilatation() - 0.1);	
-		monVBO.FeedCol(maMap.getCol());
-		monVBO.FeedPos(maMap.getPos());
-		monVBO.ActualizeColBuffer();
-		monVBO.ActualizePosBuffer();
-		break;
+
 	// Quitter l'application
 	case 27:
 		monVBO.DestroyVBO();
@@ -93,17 +56,33 @@ GLvoid souris(int bouton, int etat, int x, int y)
 	if (bouton == GLUT_LEFT_BUTTON) {
 		if (etat == GLUT_UP) 
 		{
+			//CAMERA
 			// Mise a jour des angles theta et phi
 			camera.setBouttonUp();
+
+			//INTERFACE
+			//Desactivation de l'objet
+			IU.setIsClicked(false);
+			//Regénération lorsque le curseur est relaché
+			if (IU.getObjet(IU.getIndexObject())->getTag() == "Curseur")
+			{
+				IU.action();
+			}
+			
 		}
 		else  
 		{	
+			//CAMERA
 			// Stockage des positions de la souris
 			camera.setBouttonDown(x,y);
 
+			//INTERFACE
 			//Detection d'évenement dans l'interface utilisateur
 			if (IU.getSurvol())
 			{
+				//L'objet survolé devient actif
+				IU.setIsClicked(true);
+				//On execute l'action
 				IU.action();
 			}
 		}
@@ -115,9 +94,33 @@ void deplacementSouris(int x, int y)
 {
 	bool affiche = false;
 
-	// Actualisation des vecteurs de la caméra
-	affiche = camera.ActualiserCamera(x, y);
-
+	//Actualisation de la caméra si aucun objet n'est actif, sinon,
+	//Action de l'objet actif.
+	if (!IU.getIsClicked())
+	{ 
+		// Actualisation des vecteurs de la caméra
+		affiche = camera.ActualiserCamera(x, y);
+	}
+	else
+	{
+		//Actualisation de la position du curseur si l'objet sélectionné est un curseur
+		if (IU.getObjet(IU.getIndexObject())->getTag()=="Curseur")
+		{
+			//(Width-posX)-x doit être compris entre -200 et 0
+			int newPos = windowW - IU.getObjet(IU.getIndexObject())->getPosX() - x;
+			if ((newPos > -201) && (newPos < 1))
+			{
+				//Mise à jour de la position curseur
+				Curseur* curseur = dynamic_cast<Curseur*>(IU.getObjet(IU.getIndexObject()));
+				curseur->setPosCurseur(-newPos);
+				//Prévisualisation du changement
+				IU.action();
+				//Affichage
+				glutPostRedisplay();
+			}
+		}
+	}
+	
 	// Reaffichage si le clic de la souris est actif
 	if (affiche){ glutPostRedisplay();}
 }
@@ -125,7 +128,7 @@ void deplacementSouris(int x, int y)
 
 void deplacementSourisPassif(int x, int y)
 {
-	//Booléen permettant la comparaison du survol de bouton entre deux frame
+	//Booleen permettant la comparaison du survol de bouton entre deux frame
 	bool hoover = false;
 	bool PreviousHoover = IU.getSurvol();
 
@@ -136,10 +139,8 @@ void deplacementSourisPassif(int x, int y)
 	 IU.testSurvol(x, y,windowW, windowH);
 	 hoover = IU.getSurvol();
 
-
-	//Réaffichage que si on quitte ou on rentre dans un bouton
+	//Reaffichage que si on quitte ou on rentre dans un bouton
 	if (hoover != PreviousHoover){ glutPostRedisplay();}
-	
 }
 
 // Callback de redimensionnement de la fenêtre

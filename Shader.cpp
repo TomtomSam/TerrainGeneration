@@ -50,4 +50,3 @@ GLuint Shader::getShaderID()
 {
 	return shaderID;
 }
-

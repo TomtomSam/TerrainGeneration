@@ -31,7 +31,8 @@ void heightMap::setPosOcean(float _pos)
 {
 	float maxes[2];
 	giveMaxes(maxes);
-	//Limitation de l'océan entre les bornes de la map
+
+	//Limitation de l'ocean entre les bornes de la map
 	if (_pos<maxes[0] && _pos>maxes[1])
 	{
 		posOcean = _pos;
@@ -139,7 +140,7 @@ void heightMap::diamondStep(int pas){
 			moyenne/=4;
 
 			do{random=static_cast<float>((rand()%(2*pas+1))-pas);}
-			while (abs(moyenne+random)>maxHeight);
+			while ((moyenne+random>maxHeight) || (moyenne+random<maxDepth));
 
 			heightMatrix[x][y]->setHeight(moyenne+random);
 			moyenne=0.0;
@@ -193,7 +194,7 @@ void heightMap::squareStep(int pas){
 			}
 
 			do{random=static_cast<float>((rand() % (2*pas+1))-pas);}
-			while (abs((somme / n) + random)>maxHeight);
+			while ((somme/n+random>maxHeight) || (somme/n+random<maxDepth));
 
 			heightMatrix[x][y]->setHeight((somme/n)+random);
 		}
@@ -328,15 +329,13 @@ void heightMap::ecrireFichierObj(){
 }
 
 // Fonction de remplissage du VBO
-
 void heightMap::FillDataBuffersPosColorsTex()
 {
 	int taille = static_cast<int>(pow(2, length));
-	float stride = 10.0f/taille;
-	vector<float> tex1, tex2, tex3, tex4;
+	float stride = 100.0f/taille;
 	int factor = 1/stride;
 
-	//Sécutrité pour les map de taille 1,2 et 3.
+	// Securite pour les map de taille 1,2 et 3.
 	if (factor == 0){ factor = 1; }
 
 	Chrono chrono;
@@ -360,8 +359,8 @@ void heightMap::FillDataBuffersPosColorsTex()
 			pos.push_back(i*dilatation);
 			pos.push_back(heightMatrix[i][j]->getHeight());
 			pos.push_back(j*dilatation);
-			pos.push_back((i + 1)*dilatation);
-			pos.push_back(heightMatrix[i + 1][j]->getHeight());
+			pos.push_back((i+1)*dilatation);
+			pos.push_back(heightMatrix[i+1][j]->getHeight());
 			pos.push_back(j*dilatation);
 
 			// Les couleurs
@@ -373,70 +372,41 @@ void heightMap::FillDataBuffersPosColorsTex()
 			colors.push_back(heightMatrix[i+1][j]->getB());
 
 			// Les textures
-			tex1.push_back((i%factor)*stride);
-			tex1.push_back((j%factor)*stride);
-			tex1.push_back(((i+1)%factor)*stride);
-			tex1.push_back((j%factor)*stride);
-			tex2.push_back((i%factor)*stride);
-			tex2.push_back((j%factor)*stride);
-			tex2.push_back(((i+1)%factor)*stride);
-			tex2.push_back((j%factor)*stride);
-			tex3.push_back((i%factor)*stride);
-			tex3.push_back((j%factor)*stride);
-			tex3.push_back(((i+1)%factor)*stride);
-			tex3.push_back((j%factor)*stride);
-			tex4.push_back((i%factor)*stride);
-			tex4.push_back((j%factor)*stride);
-			tex4.push_back(((i+1)%factor)*stride);
-			tex4.push_back((j%factor)*stride);
+			tex.push_back((i%factor)*stride);
+			tex.push_back((j%factor)*stride);
+			tex.push_back(((i+1)%factor)*stride);
+			tex.push_back((j%factor)*stride);
 		}
 
-		// Le dernier point de chaque strip est rentré deux fois dans le vecteur pour faire le virage
+		// Le dernier point de chaque strip est rentr� deux fois dans le vecteur pour faire le virage
 		// Remplissage des strips allant vers la gauche
 		for (int j = taille; j >= 0; j--)
 		{
 			// Les Positions
-			pos.push_back((i + 1)*dilatation);
-			pos.push_back(heightMatrix[i + 1][j]->getHeight());
+			pos.push_back((i+1)*dilatation);
+			pos.push_back(heightMatrix[i+1][j]->getHeight());
 			pos.push_back(j*dilatation);
-			pos.push_back((i + 2)*dilatation);
-			pos.push_back(heightMatrix[i + 2][j]->getHeight());
+			pos.push_back((i+2)*dilatation);
+			pos.push_back(heightMatrix[i+2][j]->getHeight());
 			pos.push_back(j*dilatation);
 
 			//Les couleurs
-			colors.push_back(heightMatrix[i + 1][j]->getR());
-			colors.push_back(heightMatrix[i + 1][j]->getG());
-			colors.push_back(heightMatrix[i + 1][j]->getB());
-			colors.push_back(heightMatrix[i + 2][j]->getR());
-			colors.push_back(heightMatrix[i + 2][j]->getG());
-			colors.push_back(heightMatrix[i + 2][j]->getB());
+			colors.push_back(heightMatrix[i+1][j]->getR());
+			colors.push_back(heightMatrix[i+1][j]->getG());
+			colors.push_back(heightMatrix[i+1][j]->getB());
+			colors.push_back(heightMatrix[i+2][j]->getR());
+			colors.push_back(heightMatrix[i+2][j]->getG());
+			colors.push_back(heightMatrix[i+2][j]->getB());
 
 			// Les textures
-			tex1.push_back(((i+1)%factor)*stride);
-			tex1.push_back((j%factor)*stride);
-			tex1.push_back(((i+2)%factor)*stride);
-			tex1.push_back((j%factor)*stride);
-			tex2.push_back(((i+1)%factor)*stride);
-			tex2.push_back((j%factor)*stride);
-			tex2.push_back(((i+2)%factor)*stride);
-			tex2.push_back((j%factor)*stride);
-			tex3.push_back(((i+1)%factor)*stride);
-			tex3.push_back((j%factor)*stride);
-			tex3.push_back(((i+2)%factor)*stride);
-			tex3.push_back((j%factor)*stride);
-			tex4.push_back(((i+1)%factor)*stride);
-			tex4.push_back((j%factor)*stride);
-			tex4.push_back(((i+2)%factor)*stride);
-			tex4.push_back((j%factor)*stride);
+			tex.push_back(((i+1)%factor)*stride);
+			tex.push_back((j%factor)*stride);
+			tex.push_back(((i+2)%factor)*stride);
+			tex.push_back((j%factor)*stride);
 		}
 	}
 
-	tex+=tex1;
-	tex+=tex2;
-	tex+=tex3;
-	tex+=tex4;
-
-	//Ajout des positions du Cache Misère
+	//Ajout des positions du Cache Misere
 	FillDataPosCacheMisere();
 
 	chrono.Toc();
@@ -464,123 +434,126 @@ void heightMap::FillDataBuffersPos()
 			pos.push_back(i*dilatation);
 			pos.push_back(heightMatrix[i][j]->getHeight());
 			pos.push_back(j*dilatation);
-			pos.push_back((i + 1)*dilatation);
-			pos.push_back(heightMatrix[i + 1][j]->getHeight());
+			pos.push_back((i+1)*dilatation);
+			pos.push_back(heightMatrix[i+1][j]->getHeight());
 			pos.push_back(j*dilatation);
 		}
 
 		for (int j = taille; j >= 0; j--)
 		{
 			// Les Positions
-			pos.push_back((i + 1)*dilatation);
-			pos.push_back(heightMatrix[i + 1][j]->getHeight());
+			pos.push_back((i+1)*dilatation);
+			pos.push_back(heightMatrix[i+1][j]->getHeight());
 			pos.push_back(j*dilatation);
-			pos.push_back((i + 2)*dilatation);
-			pos.push_back(heightMatrix[i + 2][j]->getHeight());
+			pos.push_back((i+2)*dilatation);
+			pos.push_back(heightMatrix[i+2][j]->getHeight());
 			pos.push_back(j*dilatation);
 		}
 	}
 
-	//Ajout du Cache Misère
+	// Ajout du Cache Misere
 	FillDataPosCacheMisere();
 }
 
 void heightMap::FillDataPosCacheMisere()
+{
+
+	// Ajout du Cache Misere dans le vecteur de Pos
+
+	// Repetition du dernier point de la map pour eviter de tracer le triangle ind�sirable de la strip
+	pos.push_back(taille*dilatation);
+	pos.push_back(heightMatrix[taille][0]->getHeight());
+	pos.push_back(0);
+	pos.push_back(taille*dilatation);
+	pos.push_back(heightMatrix[taille][0]->getHeight());
+	pos.push_back(0);
+
+	// Recuperation de l'altitude minimale
+	float maxes[2];
+	giveMaxes(maxes);
+	// En haut
+	for (int i = taille; i >= 0; i--)
 	{
-
-		//Ajout du Cache Misère dans le vecteur de Pos
-
-		//Répétition du dernier point de la map pour éviter de tracer le triangle indésirable de la strip
-		pos.push_back(taille*dilatation);
-		pos.push_back(heightMatrix[taille][0]->getHeight());
+		pos.push_back(i*dilatation);
+		pos.push_back(maxes[1]);
 		pos.push_back(0);
-
-
-		//Récupération de l'altitude minimale
-		float maxes[2];
-		giveMaxes(maxes);
-		// En haut
-		for (int i = taille; i >= 0; i--)
+		if (getHeightMap(i, 0)->getHeight() >= posOcean)
 		{
 			pos.push_back(i*dilatation);
-			pos.push_back(maxes[1]);
+			pos.push_back(getHeightMap(i, 0)->getHeight());
 			pos.push_back(0);
-			if (getHeightMap(i, 0)->getHeight() >= posOcean)
-			{
-				pos.push_back(i*dilatation);
-				pos.push_back(getHeightMap(i, 0)->getHeight());
-				pos.push_back(0);
-			}
-			else
-			{
-				pos.push_back(i*dilatation);
-				pos.push_back(posOcean);
-				pos.push_back(0);
-			}
-
 		}
-		// A droite
-		for (int i = 0; i <= taille; i++)
+		else
 		{
+			pos.push_back(i*dilatation);
+			pos.push_back(posOcean);
 			pos.push_back(0);
-			pos.push_back(maxes[1]);
-			pos.push_back(i*dilatation);
-			if (getHeightMap(0, i)->getHeight() > posOcean)
-			{
-				pos.push_back(0);
-				pos.push_back(getHeightMap(0, i)->getHeight());
-				pos.push_back(i*dilatation);
-			}
-			else
-			{
-				pos.push_back(0);
-				pos.push_back(posOcean);
-				pos.push_back(i*dilatation);
-			}
-
-		}
-		// En bas
-		for (int i = 0; i <= taille; i++)
-		{
-			pos.push_back(i*dilatation);
-			pos.push_back(maxes[1]);
-			pos.push_back(taille*dilatation);
-			if (getHeightMap(i, taille)->getHeight() >= posOcean)
-			{
-				pos.push_back(i*dilatation);
-				pos.push_back(getHeightMap(i, taille)->getHeight());
-				pos.push_back(taille*dilatation);
-			}
-			else
-			{
-				pos.push_back(i*dilatation);
-				pos.push_back(posOcean);
-				pos.push_back(taille*dilatation);
-			}
-
 		}
 
-		// A gauche
-		for (int i = taille; i >= 0; i--)
-		{
-			pos.push_back(taille*dilatation);
-			pos.push_back(maxes[1]);
-			pos.push_back(i*dilatation);
-			if (getHeightMap(taille, i)->getHeight() >= posOcean)
-			{
-				pos.push_back(taille*dilatation);
-				pos.push_back(getHeightMap(taille, i)->getHeight());
-				pos.push_back(i*dilatation);
-			}
-			else
-			{
-				pos.push_back(taille*dilatation);
-				pos.push_back(posOcean);
-				pos.push_back(i*dilatation);
-			}
-
-		}
 	}
+	// A droite
+	for (int i = 0; i <= taille; i++)
+	{
+		pos.push_back(0);
+		pos.push_back(maxes[1]);
+		pos.push_back(i*dilatation);
+		if (getHeightMap(0, i)->getHeight() > posOcean)
+		{
+			pos.push_back(0);
+			pos.push_back(getHeightMap(0, i)->getHeight());
+			pos.push_back(i*dilatation);
+		}
+		else
+		{
+			pos.push_back(0);
+			pos.push_back(posOcean);
+			pos.push_back(i*dilatation);
+		}
+
+	}
+	// En bas
+	for (int i = 0; i <= taille; i++)
+	{
+		pos.push_back(i*dilatation);
+		pos.push_back(maxes[1]);
+		pos.push_back(taille*dilatation);
+		if (getHeightMap(i, taille)->getHeight() >= posOcean)
+		{
+			pos.push_back(i*dilatation);
+			pos.push_back(getHeightMap(i, taille)->getHeight());
+			pos.push_back(taille*dilatation);
+		}
+		else
+		{
+			pos.push_back(i*dilatation);
+			pos.push_back(posOcean);
+			pos.push_back(taille*dilatation);
+		}
+
+	}
+
+	// A gauche
+	for (int i = taille; i >= 0; i--)
+	{
+		pos.push_back(taille*dilatation);
+		pos.push_back(maxes[1]);
+		pos.push_back(i*dilatation);
+		if (getHeightMap(taille, i)->getHeight() >= posOcean)
+		{
+			pos.push_back(taille*dilatation);
+			pos.push_back(getHeightMap(taille, i)->getHeight());
+			pos.push_back(i*dilatation);
+		}
+		else
+		{
+			pos.push_back(taille*dilatation);
+			pos.push_back(posOcean);
+			pos.push_back(i*dilatation);
+		}
+
+	}
+	
+}
 
 // Fonction de remplissage des couleurs du VBO
 void heightMap::FillDataBuffersColors()
@@ -608,7 +581,7 @@ void heightMap::FillDataBuffersColors()
 			colors.push_back(heightMatrix[i + 1][j]->getG());
 			colors.push_back(heightMatrix[i + 1][j]->getB());
 		}
-		// Le dernier point de chaque strip est rentré deux fois dans le vecteur pour faire le virage
+		// Le dernier point de chaque strip est rentr� deux fois dans le vecteur pour faire le virage
 		// Remplissage des strips allant vers la gauche
 		for (j = taille; j >= 0; j--)
 		{
@@ -622,11 +595,13 @@ void heightMap::FillDataBuffersColors()
 		}
 	}
 
-	//Nouvelle position du Cache Misère
+	//Nouvelle position du Cache Misere
 	int nombreDePosMap = 3 * 2 * taille*(taille + 1);
-	//Suppression des anciennes données du cache misère
+
+	//Suppression des anciennes donnees du cache misere
 	pos.erase(pos.begin() + nombreDePosMap, pos.end());
-	//Ajout du Cache Misère dans le Data Pos
+
+	//Ajout du Cache Misere dans le Data Pos
 	FillDataPosCacheMisere();
 
 }
@@ -665,7 +640,7 @@ void heightMap::compteurFPS(int windowW, int windowH, int FPS)
 
 	// Choix Police
 	void * font2 = GLUT_BITMAP_TIMES_ROMAN_10;
-	
+
 	// Ecriture du texte
 	for (string::iterator i = t.begin(); i != t.end(); ++i)
 	{
@@ -680,28 +655,41 @@ void heightMap::dessinOcean()
 	int taille = static_cast<int>(pow(2, length));
 	glBegin(GL_QUADS);
 	glColor3f(0, 0, 0.75);
-	glMultiTexCoord2f(GL_TEXTURE0 + 1,0,0);
-	glMultiTexCoord2f(GL_TEXTURE0 + 4,0,0);
-	glMultiTexCoord2f(GL_TEXTURE0 + 3,0,0);
-	glMultiTexCoord2f(GL_TEXTURE0 + 2,0,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + 1, 0, 0);
 	glVertex3f(0, posOcean, 0);
-	glMultiTexCoord2f(GL_TEXTURE0 + 1,1,0);
-	glMultiTexCoord2f(GL_TEXTURE0 + 4,1,0);
-	glMultiTexCoord2f(GL_TEXTURE0 + 3,1,0);
-	glMultiTexCoord2f(GL_TEXTURE0 + 2,1,0);
+	glMultiTexCoord2f(GL_TEXTURE0 + 1, 1, 0);
 	glVertex3f(taille*dilatation, posOcean, 0);
-	glMultiTexCoord2f(GL_TEXTURE0 + 1,1,1);
-	glMultiTexCoord2f(GL_TEXTURE0 + 4,1,1);
-	glMultiTexCoord2f(GL_TEXTURE0 + 3,1,1);
-	glMultiTexCoord2f(GL_TEXTURE0 + 2,1,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + 1, 1, 1);
 	glVertex3f(taille*dilatation, posOcean, taille*dilatation);
-	glMultiTexCoord2f(GL_TEXTURE0 + 1,0,1);
-	glMultiTexCoord2f(GL_TEXTURE0 + 4,0,1);
-	glMultiTexCoord2f(GL_TEXTURE0 + 3,0,1);
-	glMultiTexCoord2f(GL_TEXTURE0 + 2,0,1);
+	glMultiTexCoord2f(GL_TEXTURE0 + 1, 0, 1);
 	glVertex3f(0, posOcean, taille*dilatation);
 	glEnd();
 }
+
+void heightMap::dessinOceanPreview(float posOceanPreview)
+{
+	int taille = static_cast<int>(pow(2, length));
+	glBegin(GL_QUADS);
+	glColor3f(0, 0.2, 0.90);
+	glVertex3f(-2, posOceanPreview, -2);
+	glVertex3f(taille*dilatation+2, posOceanPreview, -2);
+	glVertex3f(taille*dilatation+2, posOceanPreview, taille*dilatation+2);
+	glVertex3f(-2, posOceanPreview, taille*dilatation+2);
+	glEnd();
+}
+
+void heightMap::dessinDilatationPreview(float dilatationPreview)
+{
+	int taille = static_cast<int>(pow(2, length));
+	glBegin(GL_QUADS);
+	glColor3f(0, 0.2, 0.90);
+	glVertex3f(0, posOcean+1, 0);
+	glVertex3f(taille*dilatationPreview, posOcean+1, 0);
+	glVertex3f(taille*dilatationPreview, posOcean+1, taille*dilatationPreview);
+	glVertex3f(0, posOcean+1, taille*dilatationPreview);
+	glEnd();
+}
+
 
 // CONSTRUCTORS
 heightMap::heightMap(){
@@ -725,6 +713,7 @@ heightMap::heightMap(){
 }
 
 heightMap::heightMap(int size){
+
 	if (size > 11){ size = 11; }
 	if (size < 1){ size = 1; }
 

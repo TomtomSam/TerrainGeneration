@@ -81,6 +81,8 @@ class heightMap
 		void FillDataPosCacheMisere();
 		void compteurFPS(int windowW, int windowH, int FPS);
 		void dessinOcean();
+		void dessinOceanPreview(float posOceanPreview);
+		void dessinDilatationPreview(float dilatationPreview);
 
         //Constructors
         heightMap();

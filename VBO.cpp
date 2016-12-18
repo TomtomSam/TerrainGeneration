@@ -15,7 +15,7 @@ void VBO::BuildBuffer()
 #define T_SIZE 2
 #define BUFFER_OFFSET(a) ((char*)NULL + (a))
 
-	//POSITION
+	/* POSITION */
 
 	// Creation d'un objet tampon et recuperation de son identifiant
 	glGenBuffers(1, &bufferPos);
@@ -42,7 +42,7 @@ void VBO::BuildBuffer()
 		glEnableClientState(GL_VERTEX_ARRAY);
 	}
 
-	//COLORS
+	/* COLORS */
 
 	// Creation d'un objet tampon et recuperation de son identifiant
 	glGenBuffers(1, &bufferCol);
@@ -52,7 +52,7 @@ void VBO::BuildBuffer()
 
 	// Allocation l'espace necessaire en memoire
 	glBufferData(GL_ARRAY_BUFFER,       // Cible 
-		 col.size()*sizeof col[0],		// Taille des couleurs
+		 col.size()*sizeof pos[0],		// Taille des couleurs
 		NULL,
 		GL_STREAM_DRAW);				// Mode de dessin
 
@@ -61,14 +61,14 @@ void VBO::BuildBuffer()
 	{
 		glBufferSubData(GL_ARRAY_BUFFER,
 			0,							// Emplacement
-			col.size()*sizeof pos[0],	// Taille
+			col.size()*sizeof col[0],	// Taille
 			&col[0]);					// Adresse
 
 		glColorPointer(C_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(0));
 		glEnableClientState(GL_COLOR_ARRAY);
 	}
 
-	//TEXTURES
+	/* TEXTURES */
 
 	// Creation d'un objet tampon et recuperation de son identifiant
 	glGenBuffers(1, &bufferTex);
@@ -78,7 +78,7 @@ void VBO::BuildBuffer()
 
 	// Allocation l'espace necessaire en memoire
 	glBufferData(GL_ARRAY_BUFFER,       // Cible 
-		tex.size()*sizeof col[0],		//  Taille des textures
+		tex.size()*sizeof pos[0],		//  Taille des textures
 		NULL,
 		GL_STREAM_DRAW);				// Mode de dessin
 
@@ -87,24 +87,12 @@ void VBO::BuildBuffer()
 	{
 		glBufferSubData(GL_ARRAY_BUFFER,
 			0,							// Emplacement
-			tex.size()*sizeof pos[0],	// Taille
+			tex.size()*sizeof tex[0],	// Taille
 			&tex[0]);					// Adresse
 
-		glClientActiveTexture(GL_TEXTURE1);
+		glClientActiveTexture(GL_TEXTURE0 + 2);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(0));
- 
-		glClientActiveTexture(GL_TEXTURE2);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(tex.size()/4*sizeof tex[0]));
- 
-		glClientActiveTexture(GL_TEXTURE3);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(2*tex.size()/4*sizeof tex[0]));
-
-		glClientActiveTexture(GL_TEXTURE4);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(3*tex.size()/4*sizeof tex[0]));
  
 		glClientActiveTexture(GL_TEXTURE0);
 	}
