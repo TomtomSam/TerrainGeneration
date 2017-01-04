@@ -25,6 +25,9 @@ public:
 	void FeedPos(vector<float> _pos); 
 	void FeedCol(vector<float> _col);
 	void FeedTex(vector<float> _tex);
+	GLuint getBufferPos(); // MaJ/////////////////////////////////////////////////////////////
+	GLuint getBufferCol();
+	GLuint getBufferTex();
 
 	//void BuildAndDrawBuffer();
 	void BuildBuffer();

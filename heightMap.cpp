@@ -331,95 +331,26 @@ void heightMap::ecrireFichierObj(){
 // Fonction de remplissage du VBO
 void heightMap::FillDataBuffersPosColorsTex()
 {
-	int taille = static_cast<int>(pow(2, length));
-	float stride = 100.0f/taille;
-	int factor = 1/stride;
-
-	// Securite pour les map de taille 1,2 et 3.
-	if (factor == 0){ factor = 1; }
-
 	Chrono chrono;
 	chrono.Tic();
 
-	pos.clear();
-	colors.clear();
-	tex.clear();
-
-	// Recalcul des couleurs de chaque point
-	mapColor();
-
-	// Remplissage strip par strip
-	for (int i = 0; i < taille; i += 2)
-	{
-
-		// Remplissage des strips allant vers la droite
-		for (int j = 0; j <= taille; j++)
-		{
-			// Les Positions 
-			pos.push_back(i*dilatation);
-			pos.push_back(heightMatrix[i][j]->getHeight());
-			pos.push_back(j*dilatation);
-			pos.push_back((i+1)*dilatation);
-			pos.push_back(heightMatrix[i+1][j]->getHeight());
-			pos.push_back(j*dilatation);
-
-			// Les couleurs
-			colors.push_back(heightMatrix[i][j]->getR());
-			colors.push_back(heightMatrix[i][j]->getG());
-			colors.push_back(heightMatrix[i][j]->getB());
-			colors.push_back(heightMatrix[i+1][j]->getR());
-			colors.push_back(heightMatrix[i+1][j]->getG());
-			colors.push_back(heightMatrix[i+1][j]->getB());
-
-			// Les textures
-			tex.push_back((i%factor)*stride);
-			tex.push_back((j%factor)*stride);
-			tex.push_back(((i+1)%factor)*stride);
-			tex.push_back((j%factor)*stride);
-		}
-
-		// Le dernier point de chaque strip est rentr� deux fois dans le vecteur pour faire le virage
-		// Remplissage des strips allant vers la gauche
-		for (int j = taille; j >= 0; j--)
-		{
-			// Les Positions
-			pos.push_back((i+1)*dilatation);
-			pos.push_back(heightMatrix[i+1][j]->getHeight());
-			pos.push_back(j*dilatation);
-			pos.push_back((i+2)*dilatation);
-			pos.push_back(heightMatrix[i+2][j]->getHeight());
-			pos.push_back(j*dilatation);
-
-			//Les couleurs
-			colors.push_back(heightMatrix[i+1][j]->getR());
-			colors.push_back(heightMatrix[i+1][j]->getG());
-			colors.push_back(heightMatrix[i+1][j]->getB());
-			colors.push_back(heightMatrix[i+2][j]->getR());
-			colors.push_back(heightMatrix[i+2][j]->getG());
-			colors.push_back(heightMatrix[i+2][j]->getB());
-
-			// Les textures
-			tex.push_back(((i+1)%factor)*stride);
-			tex.push_back((j%factor)*stride);
-			tex.push_back(((i+2)%factor)*stride);
-			tex.push_back((j%factor)*stride);
-		}
-	}
+	// Remplissage du buffer
+	FillDataBuffersPos();
+	FillDataBuffersColors();
+	FillDataBuffersTex();	
 
 	//Ajout des positions du Cache Misere
 	FillDataPosCacheMisere();
 
+	// Affichage du temps de remplissage du buffer
 	chrono.Toc();
 	cout << "Remplissage des donnees effectue en: " << static_cast<float>(chrono.getEllapsed_time()) / 1000 << "s." << endl;
 }
 
-//Calcul des positions uniquement et Remplissage du vecteur de Data Pos
+// Calcul des positions uniquement et remplissage du vecteur de Data Pos
 void heightMap::FillDataBuffersPos()
 {
 	int taille = static_cast<int>(pow(2, length));
-
-	Chrono chrono;
-	chrono.Tic();
 
 	pos.clear();
 
@@ -450,21 +381,65 @@ void heightMap::FillDataBuffersPos()
 			pos.push_back(j*dilatation);
 		}
 	}
+	
+	//Nouvelle position du Cache Misere
+	int nombreDePosMap = 3 * 2 * taille*(taille + 1);
 
-	// Ajout du Cache Misere
+	//Suppression des anciennes donnees du cache misere
+	pos.erase(pos.begin() + nombreDePosMap, pos.end());
+
+	//Ajout du Cache Misere dans le Data Pos
 	FillDataPosCacheMisere();
 }
 
+//Calcul des positions uniquement et Remplissage du vecteur de Data Pos
+void heightMap::FillDataBuffersTex()
+{
+	int taille = static_cast<int>(pow(2, length));
+	float stride = 100.0f / taille;
+	int factor = 1 / stride;
+
+	// Gestion de la division par 0
+	if (factor == 0) { factor = 1; }
+
+	tex.clear();
+
+	// Remplissage strip par strip
+	for (int i = 0; i < taille; i += 2)
+	{
+
+		// Remplissage des strips allant vers la droite
+		for (int j = 0; j <= taille; j++)
+		{
+			tex.push_back((i%factor)*stride);
+			tex.push_back((j%factor)*stride);
+			tex.push_back(((i + 1) % factor)*stride);
+			tex.push_back((j%factor)*stride);
+		}
+
+		// Remplissage des strips allant vers la gauche
+		for (int j = taille; j >= 0; j--)
+		{
+			tex.push_back(((i + 1) % factor)*stride);
+			tex.push_back((j%factor)*stride);
+			tex.push_back(((i + 2) % factor)*stride);
+			tex.push_back((j%factor)*stride);
+		}
+	}
+}
+
+
 void heightMap::FillDataPosCacheMisere()
 {
-
 	// Ajout du Cache Misere dans le vecteur de Pos
 
-	// Repetition du dernier point de la map pour eviter de tracer le triangle ind�sirable de la strip
+	// Repetition du dernier point de la map pour eviter de tracer le triangle indesirable de la strip
 	pos.push_back(taille*dilatation);
 	pos.push_back(heightMatrix[taille][0]->getHeight());
 	pos.push_back(0);
-
+	pos.push_back(taille*dilatation);
+	pos.push_back(heightMatrix[taille][0]->getHeight());
+	pos.push_back(0);
 
 	// Recuperation de l'altitude minimale
 	float maxes[2];
@@ -548,7 +523,6 @@ void heightMap::FillDataPosCacheMisere()
 			pos.push_back(posOcean);
 			pos.push_back(i*dilatation);
 		}
-
 	}
 }
 
@@ -574,21 +548,20 @@ void heightMap::FillDataBuffersColors()
 			colors.push_back(heightMatrix[i][j]->getR());
 			colors.push_back(heightMatrix[i][j]->getG());
 			colors.push_back(heightMatrix[i][j]->getB());
-			colors.push_back(heightMatrix[i + 1][j]->getR());
-			colors.push_back(heightMatrix[i + 1][j]->getG());
-			colors.push_back(heightMatrix[i + 1][j]->getB());
+			colors.push_back(heightMatrix[i+1][j]->getR());
+			colors.push_back(heightMatrix[i+1][j]->getG());
+			colors.push_back(heightMatrix[i+1][j]->getB());
 		}
-		// Le dernier point de chaque strip est rentr� deux fois dans le vecteur pour faire le virage
 		// Remplissage des strips allant vers la gauche
 		for (j = taille; j >= 0; j--)
 		{
 			//Les couleurs
-			colors.push_back(heightMatrix[i + 1][j]->getR());
-			colors.push_back(heightMatrix[i + 1][j]->getG());
-			colors.push_back(heightMatrix[i + 1][j]->getB());
-			colors.push_back(heightMatrix[i + 2][j]->getR());
-			colors.push_back(heightMatrix[i + 2][j]->getG());
-			colors.push_back(heightMatrix[i + 2][j]->getB());
+			colors.push_back(heightMatrix[i+1][j]->getR());
+			colors.push_back(heightMatrix[i+1][j]->getG());
+			colors.push_back(heightMatrix[i+1][j]->getB());
+			colors.push_back(heightMatrix[i+2][j]->getR());
+			colors.push_back(heightMatrix[i+2][j]->getG());
+			colors.push_back(heightMatrix[i+2][j]->getB());
 		}
 	}
 
@@ -600,7 +573,6 @@ void heightMap::FillDataBuffersColors()
 
 	//Ajout du Cache Misere dans le Data Pos
 	FillDataPosCacheMisere();
-
 }
 
 // Fonction de gestion du compteur FPS et info
@@ -660,6 +632,30 @@ void heightMap::dessinOcean()
 	glVertex3f(taille*dilatation, posOcean, taille*dilatation);
 	glMultiTexCoord2f(GL_TEXTURE0 + 1, 0, 1);
 	glVertex3f(0, posOcean, taille*dilatation);
+	glEnd();
+}
+
+void heightMap::dessinOceanPreview(float posOceanPreview)
+{
+	int taille = static_cast<int>(pow(2, length));
+	glBegin(GL_QUADS);
+	glColor3f(0, 0.2, 0.90);
+	glVertex3f(-2, posOceanPreview, -2);
+	glVertex3f(taille*dilatation+2, posOceanPreview, -2);
+	glVertex3f(taille*dilatation+2, posOceanPreview, taille*dilatation+2);
+	glVertex3f(-2, posOceanPreview, taille*dilatation+2);
+	glEnd();
+}
+
+void heightMap::dessinDilatationPreview(float dilatationPreview)
+{
+	int taille = static_cast<int>(pow(2, length));
+	glBegin(GL_QUADS);
+	glColor3f(0, 0.2, 0.90);
+	glVertex3f(0, posOcean+1, 0);
+	glVertex3f(taille*dilatationPreview, posOcean+1, 0);
+	glVertex3f(taille*dilatationPreview, posOcean+1, taille*dilatationPreview);
+	glVertex3f(0, posOcean+1, taille*dilatationPreview);
 	glEnd();
 }
 

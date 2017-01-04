@@ -2,10 +2,10 @@
 /************************ FRACTAL LANDSCAPES GENERATION ***********************/
 /********************* by Bastien TOUBHANS & Thomas SAMUEL ********************/
 /**************************** created on 06/10/2016 ***************************/
-/**************************** updated on 09/12/2016 ***************************/
+/**************************** updated on 01/01/2017 ***************************/
 /******************************************************************************/
 
-// Choix du namespace
+// Choix de l'espace de nommage
 using namespace std;
 
 // Inclusion des libraires
@@ -19,7 +19,7 @@ using namespace std;
 // Initialisation de la carte
 heightMap maMap(5);
 
-// Creation des textures
+//// Creation des textures
 Texture water;
 Texture grass;
 Texture ice;
@@ -31,9 +31,10 @@ Chrono chrono;
 
 // Initialisation du Vertex Buffer Object
 VBO monVBO;
+VBO monCacheMisere;
 
 // Initialisation des shaders
-Shader VS, FS, bumpVS, bumpFS; 
+Shader VS, FS, bumpVS, bumpFS;
 Program prog, bumpprog;
 
 // Creation et initialisation  de la camera
@@ -47,9 +48,10 @@ int FPS = 0;
 // Initialisation de l'interface utilisateur
 InterfaceUtilisateur IU(&maMap, &monVBO, &camera);
 
+
 // Definition de la fonction d'affichage
 GLvoid affichage()
-{	
+{
 	// Declenchement du chrono
 	chrono.Tic();
 
@@ -69,7 +71,7 @@ GLvoid affichage()
 
 	// Dessin de l'interface graphique
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	IU.draw(windowW,windowH);
+	IU.draw(windowW, windowH);
 
 	// Passage en mode perspective pour afficher la map
 	glMatrixMode(GL_PROJECTION);
@@ -86,21 +88,37 @@ GLvoid affichage()
 	glLoadIdentity();
 
 	// Definition de la position de la camera et ou elle regarde
-	gluLookAt(	camera.getcamPos().getVx(), camera.getcamPos().getVy(), camera.getcamPos().getVz(), 
-		camera.gettargetPos().getVx(), camera.gettargetPos().getVy(), camera.gettargetPos().getVz(), 
-		camera.getupWorld().getVx(), camera.getupWorld().getVy(), camera.getupWorld().getVz()	);
+	gluLookAt(camera.getcamPos().getVx(), camera.getcamPos().getVy(), camera.getcamPos().getVz(),
+		camera.gettargetPos().getVx(), camera.gettargetPos().getVy(), camera.gettargetPos().getVz(),
+		camera.getupWorld().getVx(), camera.getupWorld().getVy(), camera.getupWorld().getVz());
 
 	// Dessin de la map
-	if(IU.getRenderMode()<3){prog.useProgram();}
-	else{glUseProgram(0);}
+	if (IU.getRenderMode() < 3) { prog.useProgram(); }
+	else { glUseProgram(0); }
 	glPolygonMode(GL_FRONT_AND_BACK, maMap.getRenderMode());
 	monVBO.DrawBuffer();
 	glUseProgram(0);
 
+	// Dessin du cachemisere
+	monCacheMisere.DrawBuffer();
+
 	// Dessin de l'ocean
-	if(IU.getRenderMode()<4){prog.useProgram();}
-	else{glUseProgram(0);}
+	if (IU.getRenderMode() < 4) { bumpprog.useProgram(); }
+	else { glUseProgram(0); }
 	maMap.dessinOcean();
+	if (IU.getIsClicked())
+	{
+		Curseur* curseur = dynamic_cast<Curseur*>(IU.getObjet(IU.getIndexObject()));
+		if (IU.getIndexObject() == 7)//Ocean
+		{
+			maMap.dessinOceanPreview(curseur->getValue());
+		}
+		else if (IU.getIndexObject() == 8)//Dilatation
+		{
+			maMap.dessinDilatationPreview(curseur->getValue());
+		}
+
+	}
 	glUseProgram(0);
 
 	// Affichage a l'ecran
@@ -111,7 +129,7 @@ GLvoid affichage()
 	chrono.Toc();
 
 	if (chrono.getEllapsed_time() < 17)
-	{ 
+	{
 		Sleep(17 - chrono.getEllapsed_time());
 		chrono.Toc();
 	}
@@ -119,7 +137,7 @@ GLvoid affichage()
 	FPS = static_cast<int>(1000 / static_cast<float>(chrono.getEllapsed_time()));
 }
 
-int main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 	srand(time(NULL));
 
@@ -150,12 +168,12 @@ int main (int argc, char *argv[])
 	// Affichage du dessus de la map uniquement
 	glPolygonMode(GL_BACK, GL_FILL);
 
-	// Chargement des textures
-	water.loadTexture("WATER.jpg");
+	//// Chargement des textures
 	sand.loadTexture("SAND.jpg");
-	ice.loadTexture("ICE.jpg");
 	grass.loadTexture("GRASS.jpg");
 	snow.loadTexture("SNOW.jpg");
+	ice.loadTexture("ICE.jpg");
+	water.loadTexture("WATER.jpg");
 
 	// Initialisation de la map
 	maMap.initialisationAuto();
@@ -166,13 +184,27 @@ int main (int argc, char *argv[])
 	// Remplissage des vecteurs de data a envoyer au GPU
 	maMap.FillDataBuffersPosColorsTex();
 
+
 	// Remplissage du VBO
 	monVBO.FeedCol(maMap.getCol());
 	monVBO.FeedPos(maMap.getPos());
 	monVBO.FeedTex(maMap.getTex());
 	monVBO.BuildBuffer();
 
-  // Reglages de la camera
+	float maxes[2];
+	maMap.giveMaxes(maxes);
+
+	//Initialisation des pos de curseur
+	//Curseur Océan initialisé à posOcéan
+	int posCurseurIni = 200 * (maMap.getPosOcean() - maxes[1]) / (maxes[0] - maxes[1]);
+	Curseur* curseur = dynamic_cast<Curseur*>(IU.getObjet(7));
+	curseur->setPosCurseur(posCurseurIni);
+
+	//Curseur de dilatation initialisé à 1.0f
+	curseur = dynamic_cast<Curseur*>(IU.getObjet(8));
+	curseur->setPosCurseur(0);
+
+	// Reglages de la camera
 	camera.setFar(static_cast<float>(maMap.getTaille() * 2));
 
 	// Definition des fonctions de callback
@@ -204,45 +236,37 @@ int main (int argc, char *argv[])
 	prog.useProgram();
 	float maxMin[2];
 	maMap.giveMaxes(maxMin);
-	float oc = maMap.getPosOcean();
-	float dis = maxMin[0]-oc;
+	float dis = maxMin[0]-maMap.getPosOcean();
 
 	prog.setUniformf("maxHeight", maxMin[0]);
 	prog.setUniformf("minHeight", maxMin[1]);
-	prog.setUniformf("beachInf", oc);
+	prog.setUniformf("beachInf", maxMin[1]);
 	prog.setUniformf("beachSup", maMap.getPosOcean()+dis*0.05);
 	prog.setUniformf("grassInf", maMap.getPosOcean()+dis*0.02);
-	prog.setUniformf("grassSup", maMap.getPosOcean()+dis*0.82);
+	prog.setUniformf("grassSup", maMap.getPosOcean()+dis*0.99);
 	prog.setUniformf("snowInf", maMap.getPosOcean()+dis*0.8);
-	prog.setUniformf("snowSup", maMap.getPosOcean()+dis*87);
+	prog.setUniformf("snowSup", maMap.getPosOcean()+dis*.9);
 	prog.setUniformf("iceInf", maMap.getPosOcean()+dis*0.85);
-
-	GLint texture, texture1, texture2, texture3, texture4;
+	prog.setUniformf("taille", maMap.getTaille());
 	
 	bumpprog.useProgram();
 	glActiveTexture(GL_TEXTURE0 + water.getTexture());
 	glBindTexture(GL_TEXTURE_2D, water.getTexture());
-	texture = glGetUniformLocation(bumpprog.getProgramID(), "bumptex");
-	glUniform1i(texture, water.getTexture());
-	bumpprog.setUniformi("bumpID", water.getTexture());
+	glUniform1i(glGetUniformLocation(bumpprog.getProgramID(), "tex_water"), water.getTexture());
 		
 	prog.useProgram();
 	glActiveTexture(GL_TEXTURE0 + sand.getTexture());
 	glBindTexture(GL_TEXTURE_2D, sand.getTexture()); 
-	texture1 = glGetUniformLocation(prog.getProgramID(), "tex_sand");
-	glUniform1i(texture1, sand.getTexture());
+	glUniform1i(glGetUniformLocation(prog.getProgramID(), "tex_sand"), sand.getTexture());
 	glActiveTexture(GL_TEXTURE0 + ice.getTexture());
 	glBindTexture(GL_TEXTURE_2D, ice.getTexture()); 
-	texture2 = glGetUniformLocation(prog.getProgramID(), "tex_ice");
-	glUniform1i(texture2, ice.getTexture());
+	glUniform1i(glGetUniformLocation(prog.getProgramID(), "tex_ice"), ice.getTexture());
 	glActiveTexture(GL_TEXTURE0 + grass.getTexture());
 	glBindTexture(GL_TEXTURE_2D, grass.getTexture());
-	texture3 = glGetUniformLocation(prog.getProgramID(), "tex_grass");
-	glUniform1i(texture3, grass.getTexture());
+	glUniform1i(glGetUniformLocation(prog.getProgramID(), "tex_grass"), grass.getTexture());
 	glActiveTexture(GL_TEXTURE0 + snow.getTexture());
 	glBindTexture(GL_TEXTURE_2D, snow.getTexture());
-	texture4 = glGetUniformLocation(prog.getProgramID(), "tex_snow");
-	glUniform1i(texture4, snow.getTexture());
+	glUniform1i(glGetUniformLocation(prog.getProgramID(), "tex_snow"), snow.getTexture());
 	glUseProgram(0);
 
 	// Lancement de la boucle infinie GLUT

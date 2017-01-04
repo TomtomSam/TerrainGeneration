@@ -73,14 +73,16 @@ class heightMap
         void squareStep(int pas);
         void giveMaxes(float* max_min);
 		void mapColor();
-		void seuilDefinition(float* seuil);
 		void ecrireFichierObj();
 		void FillDataBuffersPosColorsTex();
 		void FillDataBuffersColors();
 		void FillDataBuffersPos();
+		void FillDataBuffersTex();
 		void FillDataPosCacheMisere();
 		void compteurFPS(int windowW, int windowH, int FPS);
 		void dessinOcean();
+		void dessinOceanPreview(float posOceanPreview);
+		void dessinDilatationPreview(float dilatationPreview);
 
         //Constructors
         heightMap();

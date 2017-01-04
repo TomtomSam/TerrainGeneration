@@ -1,12 +1,7 @@
-uniform sampler2D tex_water;
 uniform sampler2D tex_grass;
 uniform sampler2D tex_ice;
 uniform sampler2D tex_sand;
-
-uniform int waterID;
-uniform int grassID;
-uniform int iceID;
-uniform int sandID;
+uniform sampler2D tex_snow;
 
 uniform float maxHeight;
 uniform float minHeight;
@@ -15,9 +10,13 @@ uniform float grassSup;
 uniform float beachInf;
 uniform float beachSup;
 uniform float snowInf;
-uniform float waterSup;
+uniform float snowSup;
+uniform float iceInf;
 
 varying float height;
+varying vec3 colorramp;
+varying float texCoord1;
+varying float texCoord2;
 
 float contribution(float altitude, float borne_inf, float borne_sup)
 {
@@ -29,27 +28,30 @@ float contribution(float altitude, float borne_inf, float borne_sup)
 void main()
 {
 	//Get Texture colors
-	vec3 waterColor	= texture2D(tex_water,gl_TexCoord[waterID].st).rgb;
-	vec3 grassColor	= texture2D(tex_grass,gl_TexCoord[grassID].st).rgb;
-	vec3 iceColor	= texture2D(tex_ice,gl_TexCoord[iceID].st).rgb;
-	vec3 sandColor	= texture2D(tex_sand,gl_TexCoord[sandID].st).rgb;
+	vec2 texcoord;
+	texcoord.x = texCoord1;
+	texcoord.y = texCoord2;
+	vec3 grassColor	= texture2D(tex_grass,texcoord).rgb;
+	vec3 iceColor	= texture2D(tex_ice,texcoord).rgb;
+	vec3 sandColor = texture2D(tex_sand,texcoord).rgb;
+	vec3 snowColor = texture2D(tex_snow,texcoord).rgb;
 	
 	//Calculate Texture Weights
-	float waterWeight, grassWeight, iceWeight, sandWeight;
+	float grassWeight, iceWeight, sandWeight, snowWeight;
 	
-	waterWeight = contribution(height, minHeight, waterSup);
-	if(waterWeight>0){sandWeight=0;}
-	else{sandWeight = contribution(height, beachInf, beachSup);}
+	sandWeight = contribution(height, beachInf, beachSup);
 	grassWeight = contribution(height, grassInf, grassSup);
-	iceWeight = contribution(height, snowInf, maxHeight);
+	snowWeight = contribution(height, snowInf, snowSup);
+	iceWeight = contribution(height, iceInf, maxHeight);
 	
 	//Calculate Normalized Weights
-	float totalWeight = waterWeight + grassWeight + sandWeight + iceWeight ;
-	waterWeight= waterWeight/totalWeight;
+	float totalWeight = grassWeight + sandWeight + iceWeight + snowWeight ;
 	grassWeight = grassWeight/totalWeight;
 	iceWeight = iceWeight/totalWeight;
 	sandWeight = sandWeight/totalWeight;
+	snowWeight = snowWeight/totalWeight;
 	
-	gl_FragColor = vec4((waterWeight * waterColor.rgb + grassWeight * grassColor.rgb + sandWeight * sandColor.rgb + iceWeight * iceColor.rgb),1.0);
-}
+	vec3 col = (grassWeight * grassColor.rgb + sandWeight * sandColor.rgb + iceWeight * iceColor.rgb + snowWeight * snowColor.rgb)*colorramp;
 
+	gl_FragColor = vec4(col,1.0);
+}

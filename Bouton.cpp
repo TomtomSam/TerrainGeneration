@@ -1,43 +1,37 @@
 #include "Bouton.h"
 
 // CONSTRUCTOR
-Bouton::Bouton(int _posX, int _posY, string _label)
+Bouton::Bouton(int _posX, int _posY, string _label) :IUobject(_posX, _posY, "Bouton")
 {
-	posX = _posX;
-	posY = _posY;
-	hauteur = 30;
-	label = _label;
-	survol = false;
-	largeur = 40;
+	this->setLabel(_label);
+	this->setHauteur(30);
+	this->setLargeur(40);
 
 	// Ajustement de la largeur pour acceuillir le label
-	for (string::iterator i = label.begin(); i != label.end(); ++i)
+	for (string::iterator i = _label.begin(); i != _label.end(); ++i)
 	{
 		char c = *i;
 
 		// Augmentation de la largeur de 20 pixels par majuscule
-		if (isupper(c)){ largeur += 20; } 
+		if (isupper(c)){ this->setLargeur(this->getLargeur() + 20); }
 
 		// Augmentation de la largeur de 10 pixels par miniscule
-		else{ largeur += 10; } 
+		else{ this->setLargeur(this->getLargeur() + 10); }
 	}
 }
 
+// DESTRUCTOR
 Bouton::~Bouton(){}
 
-// GETTERS
-bool Bouton::getSurvol(){ return survol; }
-int Bouton::getLargeur(){ return largeur; }
-
 // METHODS
-// Dessin d'un label
+// Dessin d'un bouton
 void Bouton::draw(int windowW,int windowH)
 {
 	// Affichage du texte
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	glTranslatef(windowW-posX, windowH-posY, 0);
+	glTranslatef(windowW - this->getPosX(), windowH - this->getPosY(), 0);
 
 	//Couleur du texte
 	glColor3f(0,0,0);
@@ -49,22 +43,23 @@ void Bouton::draw(int windowW,int windowH)
 	void * font = GLUT_BITMAP_TIMES_ROMAN_24;
 
 	// Ecriture du texte
-	for (string::iterator i = label.begin(); i != label.end(); ++i)
+	int tailleLabel = this->getLabel().size();
+	for (int i = 0; i < tailleLabel; i++)
 	{
-		char c = *i;
+		char c = this->getLabel()[i];
 		glutBitmapCharacter(font, c);
 	}
 
 	// Mise en valeur des bords en cas de survol
-	if (survol)
+	if (this->getSurvol())
 	{
 		glLineWidth(4.0f);
 		glBegin(GL_LINE_LOOP);
 		glColor3f(0,0,0);
 		glVertex2i(0, 0);
-		glVertex2i(largeur, 0);
-		glVertex2i(largeur, hauteur);
-		glVertex2i(0, hauteur);
+		glVertex2i(this->getLargeur(), 0);
+		glVertex2i(this->getLargeur(), this->getHauteur());
+		glVertex2i(0, this->getHauteur());
 		glEnd();
 		glLineWidth(1.0f);
 	}
@@ -73,23 +68,24 @@ void Bouton::draw(int windowW,int windowH)
 	glBegin(GL_QUADS);
 	glColor3f(0.8,0.9,0.8);
 	glVertex2i(0, 0);
-	glVertex2i(largeur, 0);
-	glVertex2i(largeur, hauteur);
-	glVertex2i(0, hauteur);
+	glVertex2i(this->getLargeur(), 0);
+	glVertex2i(this->getLargeur(), this->getHauteur());
+	glVertex2i(0, this->getHauteur());
 	glEnd();
 }
 
 // Detection du survol du bouton par la souris
 bool Bouton::isMouseInMe(int x, int y,int windowW,int windowH)
 {
-	if ((x<(windowW-posX+largeur)) && (x>(windowW-posX)) && (y>(posY-hauteur)) && (y<posY))
+	if ((x<(windowW - this->getPosX() + this->getLargeur())) && (x>(windowW - this->getPosX())) 
+		&& (y>(this->getPosY() - this->getHauteur())) && (y<this->getPosY()))
 	{
-		survol = true;
+		this->setSurvol(true);
 	}
 	else
 	{
-		survol = false;
+		this->setSurvol(false);
 	}
 
-	return survol;
+	return this->getSurvol();
 }

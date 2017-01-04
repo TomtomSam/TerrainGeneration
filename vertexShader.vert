@@ -1,11 +1,16 @@
 varying float height;
+varying vec3 colorramp;
+varying float texCoord1;
+varying float texCoord2;
+
+uniform float taille;
 
 void main()
 {
-	gl_TexCoord[1]  = gl_MultiTexCoord1;
-	gl_TexCoord[2]  = gl_MultiTexCoord2;
-	gl_TexCoord[3]  = gl_MultiTexCoord3;
-	gl_TexCoord[4]  = gl_MultiTexCoord4;
+	texCoord1 = gl_Vertex.x/taille;//10*gl_Vertex.x/taille - floor(10*gl_Vertex.x/taille);
+	texCoord2 = gl_Vertex.z/taille;//10*gl_Vertex.z/taille - floor(10*gl_Vertex.z/taille);
 	height = gl_Vertex.y;
+	colorramp = gl_Color.rgb;
 	gl_Position = ftransform();
 }
+

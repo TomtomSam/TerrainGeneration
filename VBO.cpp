@@ -52,7 +52,7 @@ void VBO::BuildBuffer()
 
 	// Allocation l'espace necessaire en memoire
 	glBufferData(GL_ARRAY_BUFFER,       // Cible 
-		 col.size()*sizeof col[0],		// Taille des couleurs
+		col.size()*sizeof col[0],		// Taille des couleurs
 		NULL,
 		GL_STREAM_DRAW);				// Mode de dessin
 
@@ -93,7 +93,7 @@ void VBO::BuildBuffer()
 		glClientActiveTexture(GL_TEXTURE0 + 2);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(T_SIZE, GL_FLOAT, 0, BUFFER_OFFSET(0));
- 
+
 		glClientActiveTexture(GL_TEXTURE0);
 	}
 }
@@ -102,9 +102,12 @@ void VBO::BuildBuffer()
 void VBO::DrawBuffer()
 {
 	// Dessin des strips
-	glBindBuffer(GL_ARRAY_BUFFER, bufferPos);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, pos.size() / 3);
 }
+
+GLuint VBO::getBufferPos() { return bufferPos; }
+GLuint VBO::getBufferCol() { return bufferCol; }
+GLuint VBO::getBufferTex() { return bufferTex; }
 
 // Fonction de mise a jour des positions du VBO
 void VBO::ActualizePosBuffer()
@@ -112,7 +115,7 @@ void VBO::ActualizePosBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, bufferPos);
 	GLvoid *pos_vbo = NULL;
 
-  //On obtient la position mémoire de nos data
+	//On obtient la position mémoire de nos data
 	pos_vbo = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
 	// On transfert les nouvelles data au bon endroit 
